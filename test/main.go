@@ -92,5 +92,18 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("Response: %s", response.Payload)
+	fmt.Printf("Response: %s\n", response.Payload)
+
+	secondResponse, err := rrClient.SendRequest(backend.Request{
+		ResponseId:  uuid.New().String(),
+		ContentType: "application/json",
+		Payload:     []byte(`{"content": "Goodbye world!"}`),
+	})
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Second response: %s\n", secondResponse.Payload)
+
 }
