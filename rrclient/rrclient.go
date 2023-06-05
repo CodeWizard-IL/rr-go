@@ -15,21 +15,23 @@ func (e ResponseTimeoutError) Error() string {
 }
 
 type RequestResponseClient interface {
-	SendRequestAsync(request Request) (ResponseHandler, error)
-	SendRequest(request Request) (Response, error)
+	SendRequestAsync(request RREnvelope) (ResponseHandler, error)
+	SendRequest(request RREnvelope) (RREnvelope, error)
 }
 
 type ResponseHandler interface {
-	ReceiveResponse() (Response, error)
-	ReleaseResponseChannel(rrBackend RequestResponseBackend)
+	ReceiveResponse() (RREnvelope, error)
+	ReleaseResponseChannel()
 }
 
 type SimpleResponseHandler struct {
-	ResponseChannel ResponseChannel
-	TimeoutMillis   int
+	ResponseChannelID string
+	Backend           RequestResponseBackend
+	ResponseChannel   <-chan RREnvelope
+	TimeoutMillis     int
 }
 
-func (handler *SimpleResponseHandler) ReceiveResponse() (Response, error) {
+func (handler *SimpleResponseHandler) ReceiveResponse() (RREnvelope, error) {
 
 	var timeout = make(<-chan time.Time)
 	if handler.TimeoutMillis > 0 {
@@ -38,36 +40,42 @@ func (handler *SimpleResponseHandler) ReceiveResponse() (Response, error) {
 	}
 
 	select {
-	case response := <-handler.ResponseChannel.GetChannel():
+	case response := <-handler.ResponseChannel:
 		return response, nil
 	case <-timeout:
-		return Response{}, ResponseTimeoutError{}
+		return RREnvelope{}, ResponseTimeoutError{}
 	}
 
 }
 
-func (handler *SimpleResponseHandler) ReleaseResponseChannel(rrBackend RequestResponseBackend) {
-	rrBackend.ReleaseResponseChannel(handler.ResponseChannel)
+func (handler *SimpleResponseHandler) ReleaseResponseChannel() {
+	err := handler.Backend.ReleaseChannelByID(handler.ResponseChannelID)
+	if err != nil {
+		return
+	}
 }
 
 type SimpleRequestResponseClient struct {
-	Backend       RequestResponseBackend
-	TimeoutMillis int
+	RequestChannelID string
+	Backend          RequestResponseBackend
+	TimeoutMillis    int
 }
 
-func (client *SimpleRequestResponseClient) SendRequestAsync(request Request) (ResponseHandler, error) {
-	if request.ResponseId == "" {
-		request.ResponseId = NewUuid()
+func (client *SimpleRequestResponseClient) SendRequestAsync(request RREnvelope) (ResponseHandler, error) {
+	if request.ID == "" {
+		request.ID = NewUuid()
 	}
 
-	responseChannel := client.Backend.GetResponseChannel(request)
-	channel := client.Backend.GetRequestChannel().GetChannel()
+	responseChannel := client.Backend.GetReadChannelByID(request.ID)
+	channel := client.Backend.GetWriteChannelByID(client.RequestChannelID)
 
 	channel <- request
 
 	handler := SimpleResponseHandler{
-		ResponseChannel: responseChannel,
-		TimeoutMillis:   client.TimeoutMillis,
+		ResponseChannelID: request.ID,
+		Backend:           client.Backend,
+		ResponseChannel:   responseChannel,
+		TimeoutMillis:     client.TimeoutMillis,
 	}
 
 	return &handler, nil
@@ -77,14 +85,14 @@ func NewUuid() string {
 	return uuid.New().String()
 }
 
-func (client *SimpleRequestResponseClient) SendRequest(request Request) (Response, error) {
+func (client *SimpleRequestResponseClient) SendRequest(request RREnvelope) (RREnvelope, error) {
 	handler, err := client.SendRequestAsync(request)
 	if err != nil {
-		return Response{}, err
+		return RREnvelope{}, err
 	}
 	response, err := handler.ReceiveResponse()
 
-	handler.ReleaseResponseChannel(client.Backend)
+	handler.ReleaseResponseChannel()
 
 	return response, err
 }

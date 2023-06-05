@@ -7,7 +7,7 @@ import (
 )
 
 type RequestProcessor interface {
-	ProcessRequest(request Request) (Response, error)
+	ProcessRequest(request RREnvelope) (RREnvelope, error)
 }
 type RequestResponseServer interface {
 	Start() error
@@ -15,13 +15,11 @@ type RequestResponseServer interface {
 }
 
 type SimpleRequestResponseServer struct {
-	Backend RequestResponseBackend
-
-	Processor RequestProcessor
-
-	requests chan Request
-
-	running bool
+	RequestChannelID string
+	Backend          RequestResponseBackend
+	Processor        RequestProcessor
+	requests         <-chan RREnvelope
+	running          bool
 }
 
 func (server *SimpleRequestResponseServer) Start() error {
@@ -29,7 +27,7 @@ func (server *SimpleRequestResponseServer) Start() error {
 	if err != nil {
 		return err
 	}
-	server.requests = server.Backend.GetRequestChannel().GetChannel()
+	server.requests = server.Backend.GetReadChannelByID(server.RequestChannelID)
 
 	server.running = true
 
@@ -67,7 +65,7 @@ func (server *SimpleRequestResponseServer) listenForRequests() {
 				continue
 			}
 
-			responseChannel := server.Backend.GetResponseChannel(request).GetChannel()
+			responseChannel := server.Backend.GetWriteChannelByID(request.ID)
 			responseChannel <- response
 		}
 

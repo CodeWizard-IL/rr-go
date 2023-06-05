@@ -2,74 +2,45 @@ package rrbackend
 
 import "log"
 
-type LocalRequestChannel struct {
-	Channel chan Request
-}
-
-func (t LocalRequestChannel) GetChannel() chan Request {
-	return t.Channel
-}
-
-type LocalResponseChannel struct {
-	ResponseId string
-	Channel    chan Response
-}
-
-func (t LocalResponseChannel) GetChannel() chan Response {
-	return t.Channel
-}
-
-func (t LocalResponseChannel) GetResponseId() string {
-	return t.ResponseId
-}
-
 type LocalBackend struct {
-	requests  chan Request
-	responses map[string]chan Response
+	channels map[string]chan RREnvelope
 }
 
-func (test *LocalBackend) Connect() error {
-	if test.requests != nil {
-		log.Default().Println("Test rrbackend is already connected")
+func (t *LocalBackend) Connect() error {
+
+	if t.channels != nil {
+		log.Default().Println("Local backend is already connected")
 		return nil
 	}
 
-	log.Default().Println("Connecting test rrbackend")
-	test.requests = make(chan Request, 100)
-	test.responses = make(map[string]chan Response)
+	log.Default().Println("Connecting local backend")
+
+	t.channels = make(map[string]chan RREnvelope)
 
 	return nil
 }
 
-func (test *LocalBackend) GetRequestChannel() RequestChannel {
-	return LocalRequestChannel{
-		Channel: test.requests,
+func (t *LocalBackend) getOrCreateChannelByID(ID string) chan RREnvelope {
+	channel := t.channels[ID]
+
+	if channel == nil {
+		log.Default().Printf("Creating channel %s", ID)
+		channel = make(chan RREnvelope, 100)
+		t.channels[ID] = channel
 	}
+
+	return channel
 }
 
-func (test *LocalBackend) GetResponseChannel(request Request) ResponseChannel {
-
-	if test.responses[request.ResponseId] == nil {
-		log.Printf("Creating response channel for request %s", request.ResponseId)
-		test.responses[request.ResponseId] = make(chan Response, 1)
-	} else {
-		log.Printf("Reusing response channel for request %s", request.ResponseId)
-	}
-
-	responseChannel := test.responses[request.ResponseId]
-
-	return LocalResponseChannel{
-		ResponseId: request.ResponseId,
-		Channel:    responseChannel,
-	}
+func (t *LocalBackend) GetReadChannelByID(ID string) <-chan RREnvelope {
+	return t.getOrCreateChannelByID(ID)
+}
+func (t *LocalBackend) GetWriteChannelByID(ID string) chan<- RREnvelope {
+	return t.getOrCreateChannelByID(ID)
 }
 
-func (test *LocalBackend) ReleaseResponseChannel(response ResponseChannel) {
-	responseChannel := response.GetChannel()
-	responseId := response.GetResponseId()
-
-	log.Printf("Releasing response channel for request %s", responseId)
-
-	delete(test.responses, responseId)
-	close(responseChannel)
+func (t *LocalBackend) ReleaseChannelByID(ID string) error {
+	log.Default().Printf("Releasing channel %s", ID)
+	delete(t.channels, ID)
+	return nil
 }

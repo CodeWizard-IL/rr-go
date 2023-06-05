@@ -28,9 +28,9 @@ type TestResponsePayload struct {
 type TestProcessor struct {
 }
 
-func (processor *TestProcessor) ProcessRequest(request rrbackend.Request) (rrbackend.Response, error) {
+func (processor *TestProcessor) ProcessRequest(request rrbackend.RREnvelope) (rrbackend.RREnvelope, error) {
 	if request.ContentType != "application/json" {
-		return rrbackend.Response{}, UnsupportedContentTypeError{}
+		return rrbackend.RREnvelope{}, UnsupportedContentTypeError{}
 	}
 
 	payloadBytes := request.Payload
@@ -39,7 +39,7 @@ func (processor *TestProcessor) ProcessRequest(request rrbackend.Request) (rrbac
 
 	err := json.Unmarshal(payloadBytes, &payload)
 	if err != nil {
-		return rrbackend.Response{}, err
+		return rrbackend.RREnvelope{}, err
 	}
 
 	content := payload.Content
@@ -50,7 +50,8 @@ func (processor *TestProcessor) ProcessRequest(request rrbackend.Request) (rrbac
 
 	responsePayloadBytes, _ := json.Marshal(responsePayload)
 
-	response := rrbackend.Response{
+	response := rrbackend.RREnvelope{
+		ID:          request.ID,
 		ContentType: "application/json",
 		Payload:     responsePayloadBytes,
 	}
@@ -66,8 +67,9 @@ func main() {
 	processor := TestProcessor{}
 
 	rrServer := rrserver.SimpleRequestResponseServer{
-		Backend:   &testBackend,
-		Processor: &processor,
+		RequestChannelID: "test-requests",
+		Backend:          &testBackend,
+		Processor:        &processor,
 	}
 
 	err := rrServer.Start()
@@ -75,14 +77,15 @@ func main() {
 		log.Fatal(err)
 	}
 
-	request := rrbackend.Request{
+	request := rrbackend.RREnvelope{
 		ContentType: "application/json",
 		Payload:     []byte(`{"content": "Hello world!"}`),
 	}
 
 	rrClient := rrclient.SimpleRequestResponseClient{
-		Backend:       &testBackend,
-		TimeoutMillis: 1000,
+		RequestChannelID: "test-requests",
+		Backend:          &testBackend,
+		TimeoutMillis:    1000,
 	}
 
 	response, err := rrClient.SendRequest(request)
@@ -93,7 +96,7 @@ func main() {
 
 	fmt.Printf("Response: %s\n", response.Payload)
 
-	secondResponse, err := rrClient.SendRequest(rrbackend.Request{
+	secondResponse, err := rrClient.SendRequest(rrbackend.RREnvelope{
 		ContentType: "application/json",
 		Payload:     []byte(`{"content": "Goodbye world!"}`),
 	})

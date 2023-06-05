@@ -1,13 +1,23 @@
 package rrbackend
 
-type RequestResponseBackend interface {
-	Connect() error
-	GetRequestChannel() RequestChannel
-	GetResponseChannel(request Request) ResponseChannel
-	ReleaseResponseChannel(response ResponseChannel)
+type RREnvelope struct {
+	ID          string
+	ContentType string
+	Headers     map[string]interface{}
+	Payload     []byte
 }
 
-type RequestChannel interface {
+type RequestResponseBackend interface {
+	Connect() error
+	//GetRequestChannel() ClientRequestChannel
+	//GetResponseChannel(request Request) ResponseChannel
+	//ReleaseResponseChannel(response ResponseChannel)
+	GetReadChannelByID(ID string) <-chan RREnvelope
+	GetWriteChannelByID(ID string) chan<- RREnvelope
+	ReleaseChannelByID(ID string) error
+}
+
+type ClientRequestChannel interface {
 	GetChannel() chan Request
 }
 
