@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"rrbackend"
+	"rrbackendamqp09"
 	"rrclient"
 	"rrserver"
 )
@@ -62,7 +63,11 @@ func (processor *TestProcessor) ProcessRequest(request rrbackend.RREnvelope) (rr
 func main() {
 	fmt.Println("Starting RR tests")
 
-	testBackend := rrbackend.LocalBackend{}
+	//testBackend := rrbackend.LocalBackend{}
+
+	testBackend := rrbackendamqp09.Amqp09Backend{
+		ConnectString: "amqp://guest:guest@localhost:5672/",
+	}
 
 	processor := TestProcessor{}
 

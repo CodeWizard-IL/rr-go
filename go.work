@@ -5,4 +5,5 @@ use (
 	./rrclient
 	./rrserver
 	./test
+	./rrbackendamqp09
 )
