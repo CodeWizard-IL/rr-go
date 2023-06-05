@@ -1,6 +1,7 @@
 package rrclient
 
 import (
+	"github.com/google/uuid"
 	"log"
 	. "rrbackend"
 	"time"
@@ -55,6 +56,10 @@ type SimpleRequestResponseClient struct {
 }
 
 func (client *SimpleRequestResponseClient) SendRequestAsync(request Request) (ResponseHandler, error) {
+	if request.ResponseId == "" {
+		request.ResponseId = NewUuid()
+	}
+
 	responseChannel := client.Backend.GetResponseChannel(request)
 	channel := client.Backend.GetRequestChannel().GetChannel()
 
@@ -66,6 +71,10 @@ func (client *SimpleRequestResponseClient) SendRequestAsync(request Request) (Re
 	}
 
 	return &handler, nil
+}
+
+func NewUuid() string {
+	return uuid.New().String()
 }
 
 func (client *SimpleRequestResponseClient) SendRequest(request Request) (Response, error) {

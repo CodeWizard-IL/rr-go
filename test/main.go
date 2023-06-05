@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	uuid "github.com/google/uuid"
 	"log"
 	"rrbackend"
 	"rrclient"
@@ -77,7 +76,6 @@ func main() {
 	}
 
 	request := rrbackend.Request{
-		ResponseId:  uuid.New().String(),
 		ContentType: "application/json",
 		Payload:     []byte(`{"content": "Hello world!"}`),
 	}
@@ -96,7 +94,6 @@ func main() {
 	fmt.Printf("Response: %s\n", response.Payload)
 
 	secondResponse, err := rrClient.SendRequest(rrbackend.Request{
-		ResponseId:  uuid.New().String(),
 		ContentType: "application/json",
 		Payload:     []byte(`{"content": "Goodbye world!"}`),
 	})
