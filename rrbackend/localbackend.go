@@ -1,4 +1,4 @@
-package backend
+package rrbackend
 
 import "log"
 
@@ -30,11 +30,11 @@ type LocalBackend struct {
 
 func (test *LocalBackend) Connect() error {
 	if test.requests != nil {
-		log.Default().Println("Test backend is already connected")
+		log.Default().Println("Test rrbackend is already connected")
 		return nil
 	}
 
-	log.Default().Println("Connecting test backend")
+	log.Default().Println("Connecting test rrbackend")
 	test.requests = make(chan Request, 100)
 	test.responses = make(map[string]chan Response)
 

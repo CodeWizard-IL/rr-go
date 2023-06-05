@@ -1,4 +1,4 @@
-package backend
+package rrbackend
 
 type RequestResponseBackend interface {
 	Connect() error

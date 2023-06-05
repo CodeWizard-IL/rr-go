@@ -1,13 +1,13 @@
-package server
+package rrserver
 
 import (
-	"backend"
 	"log"
+	. "rrbackend"
 	"time"
 )
 
 type RequestProcessor interface {
-	ProcessRequest(request backend.Request) (backend.Response, error)
+	ProcessRequest(request Request) (Response, error)
 }
 type RequestResponseServer interface {
 	Start() error
@@ -15,11 +15,11 @@ type RequestResponseServer interface {
 }
 
 type SimpleRequestResponseServer struct {
-	Backend backend.RequestResponseBackend
+	Backend RequestResponseBackend
 
 	Processor RequestProcessor
 
-	requests chan backend.Request
+	requests chan Request
 
 	running bool
 }

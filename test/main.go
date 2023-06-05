@@ -1,13 +1,13 @@
 package main
 
 import (
-	"backend"
-	"client"
 	"encoding/json"
 	"fmt"
 	uuid "github.com/google/uuid"
 	"log"
-	"server"
+	"rrbackend"
+	"rrclient"
+	"rrserver"
 )
 
 type UnsupportedContentTypeError struct {
@@ -29,9 +29,9 @@ type TestResponsePayload struct {
 type TestProcessor struct {
 }
 
-func (processor *TestProcessor) ProcessRequest(request backend.Request) (backend.Response, error) {
+func (processor *TestProcessor) ProcessRequest(request rrbackend.Request) (rrbackend.Response, error) {
 	if request.ContentType != "application/json" {
-		return backend.Response{}, UnsupportedContentTypeError{}
+		return rrbackend.Response{}, UnsupportedContentTypeError{}
 	}
 
 	payloadBytes := request.Payload
@@ -40,7 +40,7 @@ func (processor *TestProcessor) ProcessRequest(request backend.Request) (backend
 
 	err := json.Unmarshal(payloadBytes, &payload)
 	if err != nil {
-		return backend.Response{}, err
+		return rrbackend.Response{}, err
 	}
 
 	content := payload.Content
@@ -51,7 +51,7 @@ func (processor *TestProcessor) ProcessRequest(request backend.Request) (backend
 
 	responsePayloadBytes, _ := json.Marshal(responsePayload)
 
-	response := backend.Response{
+	response := rrbackend.Response{
 		ContentType: "application/json",
 		Payload:     responsePayloadBytes,
 	}
@@ -62,11 +62,11 @@ func (processor *TestProcessor) ProcessRequest(request backend.Request) (backend
 func main() {
 	fmt.Println("Starting RR tests")
 
-	testBackend := backend.LocalBackend{}
+	testBackend := rrbackend.LocalBackend{}
 
 	processor := TestProcessor{}
 
-	rrServer := server.SimpleRequestResponseServer{
+	rrServer := rrserver.SimpleRequestResponseServer{
 		Backend:   &testBackend,
 		Processor: &processor,
 	}
@@ -76,14 +76,15 @@ func main() {
 		log.Fatal(err)
 	}
 
-	request := backend.Request{
+	request := rrbackend.Request{
 		ResponseId:  uuid.New().String(),
 		ContentType: "application/json",
 		Payload:     []byte(`{"content": "Hello world!"}`),
 	}
 
-	rrClient := client.SimpleRequestResponseClient{
-		Backend: &testBackend,
+	rrClient := rrclient.SimpleRequestResponseClient{
+		Backend:       &testBackend,
+		TimeoutMillis: 1000,
 	}
 
 	response, err := rrClient.SendRequest(request)
@@ -94,7 +95,7 @@ func main() {
 
 	fmt.Printf("Response: %s\n", response.Payload)
 
-	secondResponse, err := rrClient.SendRequest(backend.Request{
+	secondResponse, err := rrClient.SendRequest(rrbackend.Request{
 		ResponseId:  uuid.New().String(),
 		ContentType: "application/json",
 		Payload:     []byte(`{"content": "Goodbye world!"}`),
