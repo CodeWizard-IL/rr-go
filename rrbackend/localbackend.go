@@ -3,7 +3,7 @@ package rrbackend
 import "log"
 
 type LocalBackend struct {
-	channels map[string]chan RREnvelope
+	channels map[string]chan TransportEnvelope
 }
 
 func (t *LocalBackend) Connect() error {
@@ -15,27 +15,27 @@ func (t *LocalBackend) Connect() error {
 
 	log.Default().Println("Connecting local backend")
 
-	t.channels = make(map[string]chan RREnvelope)
+	t.channels = make(map[string]chan TransportEnvelope)
 
 	return nil
 }
 
-func (t *LocalBackend) getOrCreateChannelByID(ID string) chan RREnvelope {
+func (t *LocalBackend) getOrCreateChannelByID(ID string) chan TransportEnvelope {
 	channel := t.channels[ID]
 
 	if channel == nil {
 		log.Default().Printf("Creating channel %s", ID)
-		channel = make(chan RREnvelope, 100)
+		channel = make(chan TransportEnvelope, 100)
 		t.channels[ID] = channel
 	}
 
 	return channel
 }
 
-func (t *LocalBackend) GetReadChannelByID(ID string) <-chan RREnvelope {
+func (t *LocalBackend) GetReadChannelByID(ID string) <-chan TransportEnvelope {
 	return t.getOrCreateChannelByID(ID)
 }
-func (t *LocalBackend) GetWriteChannelByID(ID string) chan<- RREnvelope {
+func (t *LocalBackend) GetWriteChannelByID(ID string) chan<- TransportEnvelope {
 	return t.getOrCreateChannelByID(ID)
 }
 
@@ -43,4 +43,8 @@ func (t *LocalBackend) ReleaseChannelByID(ID string) error {
 	log.Default().Printf("Releasing channel %s", ID)
 	delete(t.channels, ID)
 	return nil
+}
+
+func (t *LocalBackend) GetEnvelopeSerdes() EnvelopeSerdes {
+	return &LocalTransportEnvelopeSerdes{}
 }

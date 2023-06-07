@@ -27,7 +27,7 @@ type ResponseHandler interface {
 type SimpleResponseHandler struct {
 	ResponseChannelID string
 	Backend           RequestResponseBackend
-	ResponseChannel   <-chan RREnvelope
+	ResponseChannel   <-chan TransportEnvelope
 	TimeoutMillis     int
 }
 
@@ -41,7 +41,11 @@ func (handler *SimpleResponseHandler) ReceiveResponse() (RREnvelope, error) {
 
 	select {
 	case response := <-handler.ResponseChannel:
-		return response, nil
+		envelope, err := handler.Backend.GetEnvelopeSerdes().DeserializeForResponse(response)
+		if err != nil {
+			return RREnvelope{}, err
+		}
+		return envelope, nil
 	case <-timeout:
 		return RREnvelope{}, ResponseTimeoutError{}
 	}
@@ -69,7 +73,13 @@ func (client *SimpleRequestResponseClient) SendRequestAsync(request RREnvelope) 
 	responseChannel := client.Backend.GetReadChannelByID(request.ID)
 	channel := client.Backend.GetWriteChannelByID(client.RequestChannelID)
 
-	channel <- request
+	transportEnvelope, err := client.Backend.GetEnvelopeSerdes().SerializeForRequest(request)
+
+	if err != nil {
+		return nil, err
+	}
+
+	channel <- transportEnvelope
 
 	handler := SimpleResponseHandler{
 		ResponseChannelID: request.ID,

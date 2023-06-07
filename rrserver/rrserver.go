@@ -18,7 +18,7 @@ type SimpleRequestResponseServer struct {
 	RequestChannelID string
 	Backend          RequestResponseBackend
 	Processor        RequestProcessor
-	requests         <-chan RREnvelope
+	requests         <-chan TransportEnvelope
 	running          bool
 }
 
@@ -56,17 +56,32 @@ func (server *SimpleRequestResponseServer) listenForRequests() {
 			}
 		case request := <-server.requests:
 
-			log.Printf("Received request: %s", request)
+			envelopeSerdes := server.Backend.GetEnvelopeSerdes()
+			rrEnvelope, err := envelopeSerdes.DeserializeForRequest(request)
+			if err != nil {
+				log.Printf("Error processing request: %s", err)
+				continue
+			}
 
-			response, err := server.Processor.ProcessRequest(request)
+			log.Printf("Received request: %s", rrEnvelope)
+
+			response, err := server.Processor.ProcessRequest(rrEnvelope)
 
 			if err != nil {
 				log.Printf("Error processing request: %s", err)
 				continue
 			}
 
-			responseChannel := server.Backend.GetWriteChannelByID(request.ID)
-			responseChannel <- response
+			responseChannel := server.Backend.GetWriteChannelByID(rrEnvelope.ID)
+
+			transportEnvelope, err := envelopeSerdes.SerializeForResponse(response)
+
+			if err != nil {
+				log.Printf("Error serializing response: %s", err)
+				continue
+			}
+
+			responseChannel <- transportEnvelope
 		}
 
 	}

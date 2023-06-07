@@ -1,7 +1,6 @@
 package rrbackendamqp09
 
 import (
-	"encoding/json"
 	"github.com/streadway/amqp"
 	"log"
 	. "rrbackend"
@@ -60,7 +59,7 @@ func (backend *Amqp09Backend) getOrDeclareQueue(queueName string) *amqp.Queue {
 	return backend.queues[queueName]
 }
 
-func (backend *Amqp09Backend) GetReadChannelByID(ID string) <-chan RREnvelope {
+func (backend *Amqp09Backend) GetReadChannelByID(ID string) <-chan TransportEnvelope {
 	q := backend.getOrDeclareQueue(ID)
 
 	msgs, err := backend.amqpChannel.Consume(
@@ -76,47 +75,39 @@ func (backend *Amqp09Backend) GetReadChannelByID(ID string) <-chan RREnvelope {
 		panic(err)
 	}
 
-	envelops := make(chan RREnvelope)
+	trc := make(chan TransportEnvelope)
 
 	go func() {
-		for msg := range msgs {
-			var envelope RREnvelope
-			err := json.Unmarshal(msg.Body, &envelope)
-			if err != nil {
-				log.Printf("Error decoding message: %s", err)
-			}
-
-			envelops <- envelope
+		for d := range msgs {
+			trc <- TransportEnvelope(d)
 		}
-		close(envelops)
 	}()
 
-	return envelops
+	return trc
 }
 
-func (backend *Amqp09Backend) GetWriteChannelByID(ID string) chan<- RREnvelope {
+func (backend *Amqp09Backend) GetWriteChannelByID(ID string) chan<- TransportEnvelope {
+
 	q := backend.getOrDeclareQueue(ID)
 
-	envelops := make(chan RREnvelope)
+	envelops := make(chan TransportEnvelope)
 
 	go func() {
 		for envelope := range envelops {
-			body, err := json.Marshal(envelope)
-			if err != nil {
-				panic(err)
+			publishing, ok := envelope.(amqp.Publishing)
+			if !ok {
+				log.Default().Printf("Error publishing to queue %s: %s", q.Name, "envelope is not of type amqp.Publishing")
+				continue
 			}
-
-			err = backend.amqpChannel.Publish(
+			err := backend.amqpChannel.Publish(
 				"",     // exchange
 				q.Name, // routing key
 				false,  // mandatory
 				false,  // immediate
-				amqp.Publishing{
-					ContentType: "application/json",
-					Body:        body,
-				})
+				publishing,
+			)
 			if err != nil {
-				panic(err)
+				log.Default().Printf("Error publishing to queue %s: %s", q.Name, err)
 			}
 		}
 	}()
@@ -130,4 +121,8 @@ func (backend *Amqp09Backend) ReleaseChannelByID(ID string) error {
 		delete(backend.queues, ID)
 	}
 	return nil
+}
+
+func (backend *Amqp09Backend) GetEnvelopeSerdes() EnvelopeSerdes {
+	return &StreadwayEnvelopeSerdes{}
 }

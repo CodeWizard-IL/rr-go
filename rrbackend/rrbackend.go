@@ -7,14 +7,29 @@ type RREnvelope struct {
 	Payload     []byte
 }
 
+type UnsupportedTransportEnvelopeError struct {
+	Reason string
+}
+
+func (e UnsupportedTransportEnvelopeError) Error() string {
+	return "Unsupported transport envelope: " + e.Reason
+}
+
+type TransportEnvelope interface {
+}
+type EnvelopeSerdes interface {
+	SerializeForRequest(envelope RREnvelope) (TransportEnvelope, error)
+	SerializeForResponse(envelope RREnvelope) (TransportEnvelope, error)
+	DeserializeForRequest(serialized TransportEnvelope) (RREnvelope, error)
+	DeserializeForResponse(serialized TransportEnvelope) (RREnvelope, error)
+}
+
 type RequestResponseBackend interface {
 	Connect() error
-	//GetRequestChannel() ClientRequestChannel
-	//GetResponseChannel(request Request) ResponseChannel
-	//ReleaseResponseChannel(response ResponseChannel)
-	GetReadChannelByID(ID string) <-chan RREnvelope
-	GetWriteChannelByID(ID string) chan<- RREnvelope
+	GetReadChannelByID(ID string) <-chan TransportEnvelope
+	GetWriteChannelByID(ID string) chan<- TransportEnvelope
 	ReleaseChannelByID(ID string) error
+	GetEnvelopeSerdes() EnvelopeSerdes
 }
 
 type ClientRequestChannel interface {
