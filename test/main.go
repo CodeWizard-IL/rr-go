@@ -4,10 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"rrbackend"
-	"rrbackendamqp09"
-	"rrclient"
-	"rrserver"
+	. "rrbackend"
+	. "rrbackendamqp09"
+	. "rrbuilder"
+	. "rrclient"
+	. "rrserver"
 )
 
 type UnsupportedContentTypeError struct {
@@ -29,9 +30,9 @@ type TestResponsePayload struct {
 type TestProcessor struct {
 }
 
-func (processor *TestProcessor) ProcessRequest(request rrbackend.RREnvelope) (rrbackend.RREnvelope, error) {
+func (processor *TestProcessor) ProcessRequest(request RREnvelope) (RREnvelope, error) {
 	if request.ContentType != "application/json" {
-		return rrbackend.RREnvelope{}, UnsupportedContentTypeError{}
+		return RREnvelope{}, UnsupportedContentTypeError{}
 	}
 
 	payloadBytes := request.Payload
@@ -40,7 +41,7 @@ func (processor *TestProcessor) ProcessRequest(request rrbackend.RREnvelope) (rr
 
 	err := json.Unmarshal(payloadBytes, &payload)
 	if err != nil {
-		return rrbackend.RREnvelope{}, err
+		return RREnvelope{}, err
 	}
 
 	content := payload.Content
@@ -51,11 +52,10 @@ func (processor *TestProcessor) ProcessRequest(request rrbackend.RREnvelope) (rr
 
 	responsePayloadBytes, _ := json.Marshal(responsePayload)
 
-	response := rrbackend.RREnvelope{
-		ID:          request.ID,
-		ContentType: "application/json",
-		Payload:     responsePayloadBytes,
-	}
+	response := ReplyTo(request).
+		WithContentType("application/json").
+		WithPayload(responsePayloadBytes).
+		Build()
 
 	return response, nil
 }
@@ -63,15 +63,15 @@ func (processor *TestProcessor) ProcessRequest(request rrbackend.RREnvelope) (rr
 func main() {
 	fmt.Println("Starting RR tests")
 
-	//testBackend := rrbackend.LocalBackend{}
+	//testBackend := LocalBackend{}
 
-	testBackend := rrbackendamqp09.Amqp09Backend{
+	testBackend := Amqp09Backend{
 		ConnectString: "amqp://guest:guest@localhost:5672/",
 	}
 
 	processor := TestProcessor{}
 
-	rrServer := rrserver.SimpleRequestResponseServer{
+	rrServer := SimpleRequestResponseServer{
 		RequestChannelID: "test-requests",
 		Backend:          &testBackend,
 		Processor:        &processor,
@@ -82,18 +82,16 @@ func main() {
 		log.Fatal(err)
 	}
 
-	request := rrbackend.RREnvelope{
-		ContentType: "application/json",
-		Payload:     []byte(`{"content": "Hello world!"}`),
-	}
-
-	rrClient := rrclient.SimpleRequestResponseClient{
+	rrClient := SimpleRequestResponseClient{
 		RequestChannelID: "test-requests",
 		Backend:          &testBackend,
 		TimeoutMillis:    1000,
 	}
 
-	response, err := rrClient.SendRequest(request)
+	response, err := NewRequest().
+		WithContentType("application/json").
+		WithPayload([]byte(`{"content": "Hello world!"}`)).
+		Send(&rrClient)
 
 	if err != nil {
 		log.Fatal(err)
@@ -101,7 +99,7 @@ func main() {
 
 	fmt.Printf("Response: %s\n", response.Payload)
 
-	secondResponse, err := rrClient.SendRequest(rrbackend.RREnvelope{
+	secondResponse, err := rrClient.SendRequest(RREnvelope{
 		ContentType: "application/json",
 		Payload:     []byte(`{"content": "Goodbye world!"}`),
 	})

@@ -6,4 +6,5 @@ use (
 	./rrserver
 	./test
 	./rrbackendamqp09
+	./rrbuilder
 )
