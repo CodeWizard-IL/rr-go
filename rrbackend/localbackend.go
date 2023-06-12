@@ -32,10 +32,18 @@ func (t *LocalBackend) getOrCreateChannelByID(ID string) chan TransportEnvelope 
 	return channel
 }
 
-func (t *LocalBackend) GetReadChannelByID(ID string) <-chan TransportEnvelope {
+func (t *LocalBackend) GetRequestReadChannelByID(ID string) <-chan TransportEnvelope {
 	return t.getOrCreateChannelByID(ID)
 }
-func (t *LocalBackend) GetWriteChannelByID(ID string) chan<- TransportEnvelope {
+
+func (t *LocalBackend) GetResponseReadChannelByID(ID string) <-chan TransportEnvelope {
+	return t.getOrCreateChannelByID(ID)
+}
+func (t *LocalBackend) GetRequestWriteChannelByID(ID string) chan<- TransportEnvelope {
+	return t.getOrCreateChannelByID(ID)
+}
+
+func (t *LocalBackend) GetResponseWriteChannelByID(ID string) chan<- TransportEnvelope {
 	return t.getOrCreateChannelByID(ID)
 }
 

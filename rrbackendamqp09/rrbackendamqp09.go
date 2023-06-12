@@ -59,7 +59,7 @@ func (backend *Amqp09Backend) getOrDeclareQueue(queueName string) *amqp.Queue {
 	return backend.queues[queueName]
 }
 
-func (backend *Amqp09Backend) GetReadChannelByID(ID string) <-chan TransportEnvelope {
+func (backend *Amqp09Backend) getReadChannelByID(ID string) <-chan TransportEnvelope {
 	q := backend.getOrDeclareQueue(ID)
 
 	msgs, err := backend.amqpChannel.Consume(
@@ -86,7 +86,7 @@ func (backend *Amqp09Backend) GetReadChannelByID(ID string) <-chan TransportEnve
 	return trc
 }
 
-func (backend *Amqp09Backend) GetWriteChannelByID(ID string) chan<- TransportEnvelope {
+func (backend *Amqp09Backend) getWriteChannelByID(ID string) chan<- TransportEnvelope {
 
 	q := backend.getOrDeclareQueue(ID)
 
@@ -113,6 +113,22 @@ func (backend *Amqp09Backend) GetWriteChannelByID(ID string) chan<- TransportEnv
 	}()
 
 	return envelops
+}
+
+func (backend *Amqp09Backend) GetRequestReadChannelByID(ID string) <-chan TransportEnvelope {
+	return backend.getReadChannelByID(ID)
+}
+
+func (backend *Amqp09Backend) GetResponseReadChannelByID(ID string) <-chan TransportEnvelope {
+	return backend.getReadChannelByID(ID)
+}
+
+func (backend *Amqp09Backend) GetRequestWriteChannelByID(ID string) chan<- TransportEnvelope {
+	return backend.getWriteChannelByID(ID)
+}
+
+func (backend *Amqp09Backend) GetResponseWriteChannelByID(ID string) chan<- TransportEnvelope {
+	return backend.getWriteChannelByID(ID)
 }
 
 func (backend *Amqp09Backend) ReleaseChannelByID(ID string) error {

@@ -7,4 +7,5 @@ use (
 	./test
 	./rrbackendamqp09
 	./rrbuilder
+	./rrbackendazsmb
 )

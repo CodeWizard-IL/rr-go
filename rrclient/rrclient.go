@@ -70,8 +70,8 @@ func (client *SimpleRequestResponseClient) SendRequestAsync(request RREnvelope) 
 		request.ID = NewUuid()
 	}
 
-	responseChannel := client.Backend.GetReadChannelByID(request.ID)
-	channel := client.Backend.GetWriteChannelByID(client.RequestChannelID)
+	responseChannel := client.Backend.GetResponseReadChannelByID(request.ID)
+	channel := client.Backend.GetRequestWriteChannelByID(client.RequestChannelID)
 
 	transportEnvelope, err := client.Backend.GetEnvelopeSerdes().SerializeForRequest(request)
 

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 	. "rrbackend"
-	. "rrbackendamqp09"
+	. "rrbackendazsmb"
 	. "rrbuilder"
 	. "rrclient"
 	. "rrserver"
@@ -65,14 +65,20 @@ func main() {
 
 	//testBackend := LocalBackend{}
 
-	testBackend := Amqp09Backend{
-		ConnectString: "amqp://guest:guest@localhost:5672/",
+	//testBackend := Amqp09Backend{
+	//	ConnectString: "amqp://guest:guest@localhost:5672/",
+	//}
+
+	testBackend := RRBackendAzSMB{
+		ConnectionString:  "Endpoint=sb://cwalexeyrr.servicebus.windows.net/;SharedAccessKeyName=rrgo;SharedAccessKey=sKMyUVlVxhjG62QrJh3mLlS/zXLpIK/a9+ASbLD88Xc=",
+		RequestQueueName:  "myrequest",
+		ResponseQueueName: "myrequest-response",
 	}
 
 	processor := TestProcessor{}
 
 	rrServer := SimpleRequestResponseServer{
-		RequestChannelID: "test-requests",
+		RequestChannelID: "myrequest",
 		Backend:          &testBackend,
 		Processor:        &processor,
 	}
@@ -83,9 +89,9 @@ func main() {
 	}
 
 	rrClient := SimpleRequestResponseClient{
-		RequestChannelID: "test-requests",
+		RequestChannelID: "myrequest",
 		Backend:          &testBackend,
-		TimeoutMillis:    1000,
+		TimeoutMillis:    10000,
 	}
 
 	response, err := NewRequest().
