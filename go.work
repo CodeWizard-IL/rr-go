@@ -8,4 +8,8 @@ use (
 	./rrbackendamqp09
 	./rrbuilder
 	./rrbackendazsmb
+	./rr-http-proxy/forward
+	./rr-http-proxy/common
+	./rr-http-proxy/reverse
+	./rr-http-proxy/testing
 )

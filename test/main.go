@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"log"
 	. "rrbackend"
-	. "rrbackendazsmb"
+	"rrbackend/local"
+	//. "rrbackendazsmb"
 	. "rrbuilder"
 	. "rrclient"
 	. "rrserver"
@@ -63,17 +64,17 @@ func (processor *TestProcessor) ProcessRequest(request RREnvelope) (RREnvelope, 
 func main() {
 	fmt.Println("Starting RR tests")
 
-	//testBackend := LocalBackend{}
+	testBackend := local.RequestResponseBackend{}
 
 	//testBackend := Amqp09Backend{
 	//	ConnectString: "amqp://guest:guest@localhost:5672/",
 	//}
 
-	testBackend := RRBackendAzSMB{
-		ConnectionString:  "Endpoint=sb://cwalexeyrr.servicebus.windows.net/;SharedAccessKeyName=rrgo;SharedAccessKey=sKMyUVlVxhjG62QrJh3mLlS/zXLpIK/a9+ASbLD88Xc=",
-		RequestQueueName:  "myrequest",
-		ResponseQueueName: "myrequest-response",
-	}
+	//testBackend := RRBackendAzSMB{
+	//	ConnectionString:  "Endpoint=sb://cwalexeyrr.servicebus.windows.net/;SharedAccessKeyName=rrgo;SharedAccessKey=sKMyUVlVxhjG62QrJh3mLlS/zXLpIK/a9+ASbLD88Xc=",
+	//	RequestQueueName:  "myrequest",
+	//	ResponseQueueName: "myrequest-response",
+	//}
 
 	processor := TestProcessor{}
 
