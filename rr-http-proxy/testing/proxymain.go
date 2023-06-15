@@ -4,8 +4,9 @@ import (
 	fserver "forward/server"
 	"log"
 	rserver "reverse/server"
+	"rrbuilder"
 	//"rrbackend/local"
-	. "rrbackendazsmb"
+	//. "rrbackendazsmb"
 	"rrclient"
 	"rrserver"
 	"time"
@@ -22,19 +23,39 @@ func (mapper *DefaultHostURLMapper) MapURL(_ string, url string) string {
 func main() {
 	//backend := local.RequestResponseBackend{}
 
-	backend := RRBackendAzSMB{
-		ConnectionString:  "Endpoint=sb://cwalexeyrr.servicebus.windows.net/;SharedAccessKeyName=rrgo;SharedAccessKey=sKMyUVlVxhjG62QrJh3mLlS/zXLpIK/a9+ASbLD88Xc=",
-		RequestQueueName:  "myrequest",
-		ResponseQueueName: "myrequest-response",
+	//backendConfig := rrbuilder.BackendConfig{
+	//	Type:          "azsmb",
+	//	Configuration: map[string]any{
+	//		"ConnectionString":  "Endpoint=sb://cwalexeyrr.servicebus.windows.net/;SharedAccessKeyName=rrgo;SharedAccessKey=sKMyUVlVxhjG62QrJh3mLlS/zXLpIK/a9+ASbLD88Xc=",
+	//		"RequestQueueName":  "myrequest",
+	//		"ResponseQueueName": "myrequest-response",
+	//	},
+	//}
+
+	//backendConfig := rrbuilder.BackendConfig{
+	//	Type:          "local",
+	//	Configuration: map[string]any{},
+	//}
+
+	backendConfig := rrbuilder.BackendConfig{
+		Type: "amqp09",
+		Configuration: map[string]any{
+			"ConnectString": "amqp://guest:guest@localhost:5672/",
+		},
 	}
 
-	err := backend.Connect()
+	backend, err := rrbuilder.BackendFromConfig(backendConfig)
+	if err != nil {
+		log.Fatal("Error creating backend: ", err)
+	}
+
+	err = backend.Connect()
 	if err != nil {
 		log.Fatal("Error connecting to backend: ", err)
 	}
 
 	client := rrclient.SimpleRequestResponseClient{
-		Backend:          &backend,
+		Backend:          backend,
 		TimeoutMillis:    10000,
 		RequestChannelID: "myrequest",
 	}
@@ -49,7 +70,7 @@ func main() {
 
 	partiallyConfiguredServer := rrserver.SimpleRequestResponseServer{
 		RequestChannelID: "myrequest",
-		Backend:          &backend,
+		Backend:          backend,
 	}
 
 	reverseProxyServer := rserver.ReverseProxyServer{
