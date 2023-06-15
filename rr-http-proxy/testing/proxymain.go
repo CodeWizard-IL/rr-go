@@ -3,6 +3,7 @@ package main
 import (
 	fserver "forward/server"
 	"log"
+	"reverse/processor"
 	rserver "reverse/server"
 	"rrbuilder"
 	//"rrbackend/local"
@@ -24,7 +25,7 @@ func main() {
 	//backend := local.RequestResponseBackend{}
 
 	//backendConfig := rrbuilder.BackendConfig{
-	//	Type:          "azsmb",
+	//	Type: "azsmb",
 	//	Configuration: map[string]any{
 	//		"ConnectionString":  "Endpoint=sb://cwalexeyrr.servicebus.windows.net/;SharedAccessKeyName=rrgo;SharedAccessKey=sKMyUVlVxhjG62QrJh3mLlS/zXLpIK/a9+ASbLD88Xc=",
 	//		"RequestQueueName":  "myrequest",
@@ -75,9 +76,10 @@ func main() {
 
 	reverseProxyServer := rserver.ReverseProxyServer{
 		RRServer: partiallyConfiguredServer,
-		UrlMapper: &DefaultHostURLMapper{
-			DefaultHost: "localhost:3000",
-		},
+		//UrlMapper: &DefaultHostURLMapper{
+		//	DefaultHost: "localhost:3000",
+		//},
+		UrlMapper: &processor.FirstPathUrlMapper{},
 	}
 
 	reverseProxyServer.Start()
