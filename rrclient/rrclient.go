@@ -70,8 +70,13 @@ func (client *SimpleRequestResponseClient) SendRequestAsync(request RREnvelope) 
 		request.ID = NewUuid()
 	}
 
-	responseChannel := client.Backend.GetResponseReadChannelByID(request.ID)
-	channel := client.Backend.GetRequestWriteChannelByID(client.RequestChannelID)
+	responseChannel, actualResponseID := client.Backend.GetResponseReadChannelByID(request.ID)
+	if request.ID != actualResponseID {
+		log.Printf("Request ID %s was replaced by %s by backend implementation", request.ID, actualResponseID)
+		request.ID = actualResponseID
+	}
+
+	channel, _ := client.Backend.GetRequestWriteChannelByID(client.RequestChannelID)
 
 	transportEnvelope, err := client.Backend.GetEnvelopeSerdes().SerializeForRequest(request)
 

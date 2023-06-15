@@ -3,22 +3,61 @@ package rrbackendazsmb
 import (
 	"context"
 	"github.com/Azure/azure-sdk-for-go/sdk/messaging/azservicebus"
+	"github.com/google/uuid"
 	"log"
 	. "rrbackend"
 )
 
-type RRBackendAzSMB struct {
-	ConnectionString  string
-	RequestQueueName  string
-	ResponseQueueName string
-
-	client               *azservicebus.Client
-	requestQueueSender   *azservicebus.Sender
-	responseQueueSender  *azservicebus.Sender
-	requestQueueReceiver *azservicebus.Receiver
+type SessionReceiver struct {
+	SessionID string
+	Receiver  *azservicebus.SessionReceiver
 }
 
+type RRBackendAzSMB struct {
+	ConnectionString    string
+	RequestQueueName    string
+	ResponseQueueName   string
+	MinSessionReceivers int
+	MaxSessionReceivers int
+
+	client                 *azservicebus.Client
+	requestQueueSender     *azservicebus.Sender
+	responseQueueSender    *azservicebus.Sender
+	requestQueueReceiver   *azservicebus.Receiver
+	responseQueueReceivers []SessionReceiver
+	sessionReceiversMap    map[string]SessionReceiver
+
+	obtainReceiver  chan SessionReceiver
+	releaseReceiver chan SessionReceiver
+}
+
+func (backend *RRBackendAzSMB) getObtainReceiverChannel() <-chan SessionReceiver {
+	return backend.obtainReceiver
+}
+
+func (backend *RRBackendAzSMB) getReleaseReceiverChannel() chan<- SessionReceiver {
+	return backend.releaseReceiver
+}
+
+func (backend *RRBackendAzSMB) newSessionReceiver() SessionReceiver {
+	sessionID := uuid.New().String()
+	receiver, err := backend.client.AcceptSessionForQueue(context.TODO(), backend.ResponseQueueName, sessionID, nil)
+	if err != nil {
+		log.Printf("Error creating new session receiver: %v", err)
+		return SessionReceiver{}
+	}
+
+	sessionReceiver := SessionReceiver{SessionID: sessionID, Receiver: receiver}
+	backend.sessionReceiversMap[sessionID] = sessionReceiver
+	return sessionReceiver
+}
 func (backend *RRBackendAzSMB) Connect() error {
+
+	if backend.client != nil {
+		log.Println("Already connected")
+		return nil
+	}
+
 	var err error
 
 	backend.client, err = azservicebus.NewClientFromConnectionString(backend.ConnectionString, nil)
@@ -36,6 +75,48 @@ func (backend *RRBackendAzSMB) Connect() error {
 		return err
 	}
 
+	if backend.MinSessionReceivers == 0 {
+		backend.MinSessionReceivers = 10
+	}
+
+	if backend.MaxSessionReceivers == 0 {
+		backend.MaxSessionReceivers = 20
+	}
+
+	backend.obtainReceiver = make(chan SessionReceiver)
+	backend.releaseReceiver = make(chan SessionReceiver)
+	backend.responseQueueReceivers = make([]SessionReceiver, backend.MinSessionReceivers)
+	backend.sessionReceiversMap = make(map[string]SessionReceiver)
+
+	log.Println("Creating initial session receivers")
+	for i := 0; i < backend.MinSessionReceivers; i++ {
+		backend.responseQueueReceivers[i] = backend.newSessionReceiver()
+		//backend.responseQueueReceivers = append(backend.responseQueueReceivers, backend.newSessionReceiver())
+		log.Printf("Created session receiver for session %s", backend.responseQueueReceivers[i].SessionID)
+	}
+
+	go func() {
+		for {
+			releasedReceiver := <-backend.releaseReceiver
+			log.Printf("Releasing receiver for session %s", releasedReceiver.SessionID)
+			backend.responseQueueReceivers = append(backend.responseQueueReceivers, releasedReceiver)
+		}
+	}()
+
+	go func() {
+		for {
+			if len(backend.responseQueueReceivers) < 1 {
+				backend.responseQueueReceivers = append(backend.responseQueueReceivers, backend.newSessionReceiver())
+				log.Printf("Created new session receiver for session %s", backend.responseQueueReceivers[0].SessionID)
+			}
+			nextReceiver := backend.responseQueueReceivers[0]
+			backend.responseQueueReceivers = backend.responseQueueReceivers[1:]
+			log.Printf("Preparing next receiver for session %s", nextReceiver.SessionID)
+			backend.obtainReceiver <- nextReceiver
+			log.Printf("Obtained next receiver for session %s", nextReceiver.SessionID)
+		}
+	}()
+
 	return err
 }
 
@@ -52,11 +133,11 @@ func (backend *RRBackendAzSMB) getOrCreateRequestReceiverForServer() (*azservice
 }
 
 // GetRequestReadChannelByID returns a channel that can be used to read requests from the specified ID
-func (backend *RRBackendAzSMB) GetRequestReadChannelByID(ID string) <-chan TransportEnvelope {
+func (backend *RRBackendAzSMB) GetRequestReadChannelByID(ID string) (<-chan TransportEnvelope, string) {
 	receiver, err := backend.getOrCreateRequestReceiverForServer()
 
 	if err != nil {
-		return nil
+		return nil, ""
 	}
 
 	channel := make(chan TransportEnvelope)
@@ -83,20 +164,23 @@ func (backend *RRBackendAzSMB) GetRequestReadChannelByID(ID string) <-chan Trans
 		}
 	}()
 
-	return channel
+	return channel, ID
 }
 
 // GetResponseReadChannelByID returns a channel that can be used to read responses from the specified ID
-func (backend *RRBackendAzSMB) GetResponseReadChannelByID(ID string) <-chan TransportEnvelope {
+func (backend *RRBackendAzSMB) GetResponseReadChannelByID(ID string) (<-chan TransportEnvelope, string) {
 
 	channel := make(chan TransportEnvelope)
+	sessionID := ID
+	syncForId := make(chan string)
 
 	go func() {
-		receiver, err := backend.client.AcceptSessionForQueue(context.TODO(), backend.ResponseQueueName, ID, nil)
-		if err != nil {
-			log.Printf("Error accepting session: %v", err)
-		}
-		defer receiver.Close(context.TODO())
+		preparedSessionReceiver := <-backend.getObtainReceiverChannel()
+
+		receiver := preparedSessionReceiver.Receiver
+		sessionID = preparedSessionReceiver.SessionID
+
+		syncForId <- sessionID
 
 		for {
 			msg, err := receiver.ReceiveMessages(context.TODO(), 1, nil)
@@ -106,6 +190,10 @@ func (backend *RRBackendAzSMB) GetResponseReadChannelByID(ID string) <-chan Tran
 				return
 			}
 
+			if len(msg) == 0 {
+				log.Printf("No message received. Retrying...")
+				continue
+			}
 			message := *msg[0]
 
 			err = receiver.CompleteMessage(context.TODO(), &message, nil)
@@ -122,11 +210,13 @@ func (backend *RRBackendAzSMB) GetResponseReadChannelByID(ID string) <-chan Tran
 		}
 	}()
 
-	return channel
+	sessionID = <-syncForId
+
+	return channel, sessionID
 }
 
 // GetRequestWriteChannelByID returns a channel that can be used to write requests to the specified ID
-func (backend *RRBackendAzSMB) GetRequestWriteChannelByID(ID string) chan<- TransportEnvelope {
+func (backend *RRBackendAzSMB) GetRequestWriteChannelByID(ID string) (chan<- TransportEnvelope, string) {
 	channel := make(chan TransportEnvelope)
 
 	go func() {
@@ -148,11 +238,11 @@ func (backend *RRBackendAzSMB) GetRequestWriteChannelByID(ID string) chan<- Tran
 		}
 	}()
 
-	return channel
+	return channel, ID
 }
 
 // GetResponseWriteChannelByID returns a channel that can be used to write responses to the specified ID
-func (backend *RRBackendAzSMB) GetResponseWriteChannelByID(ID string) chan<- TransportEnvelope {
+func (backend *RRBackendAzSMB) GetResponseWriteChannelByID(ID string) (chan<- TransportEnvelope, string) {
 	channel := make(chan TransportEnvelope)
 
 	go func() {
@@ -176,11 +266,14 @@ func (backend *RRBackendAzSMB) GetResponseWriteChannelByID(ID string) chan<- Tra
 		}
 	}()
 
-	return channel
+	return channel, ID
 }
 
 func (backend *RRBackendAzSMB) ReleaseChannelByID(ID string) error {
-	// Nothing to do here
+
+	sessionReceiver := backend.sessionReceiversMap[ID]
+
+	backend.releaseReceiver <- sessionReceiver
 	return nil
 }
 

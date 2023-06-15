@@ -26,10 +26,10 @@ type EnvelopeSerdes interface {
 
 type RequestResponseBackend interface {
 	Connect() error
-	GetRequestReadChannelByID(ID string) <-chan TransportEnvelope
-	GetResponseReadChannelByID(ID string) <-chan TransportEnvelope
-	GetRequestWriteChannelByID(ID string) chan<- TransportEnvelope
-	GetResponseWriteChannelByID(ID string) chan<- TransportEnvelope
+	GetRequestReadChannelByID(ID string) (<-chan TransportEnvelope, string)
+	GetResponseReadChannelByID(ID string) (<-chan TransportEnvelope, string)
+	GetRequestWriteChannelByID(ID string) (chan<- TransportEnvelope, string)
+	GetResponseWriteChannelByID(ID string) (chan<- TransportEnvelope, string)
 	ReleaseChannelByID(ID string) error
 	GetEnvelopeSerdes() EnvelopeSerdes
 }

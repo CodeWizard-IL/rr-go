@@ -35,19 +35,19 @@ func (t *RequestResponseBackend) getOrCreateChannelByID(ID string) chan rrbacken
 	return channel
 }
 
-func (t *RequestResponseBackend) GetRequestReadChannelByID(ID string) <-chan rrbackend.TransportEnvelope {
-	return t.getOrCreateChannelByID(ID)
+func (t *RequestResponseBackend) GetRequestReadChannelByID(ID string) (<-chan rrbackend.TransportEnvelope, string) {
+	return t.getOrCreateChannelByID(ID), ID
 }
 
-func (t *RequestResponseBackend) GetResponseReadChannelByID(ID string) <-chan rrbackend.TransportEnvelope {
-	return t.getOrCreateChannelByID(ID)
+func (t *RequestResponseBackend) GetResponseReadChannelByID(ID string) (<-chan rrbackend.TransportEnvelope, string) {
+	return t.getOrCreateChannelByID(ID), ID
 }
-func (t *RequestResponseBackend) GetRequestWriteChannelByID(ID string) chan<- rrbackend.TransportEnvelope {
-	return t.getOrCreateChannelByID(ID)
+func (t *RequestResponseBackend) GetRequestWriteChannelByID(ID string) (chan<- rrbackend.TransportEnvelope, string) {
+	return t.getOrCreateChannelByID(ID), ID
 }
 
-func (t *RequestResponseBackend) GetResponseWriteChannelByID(ID string) chan<- rrbackend.TransportEnvelope {
-	return t.getOrCreateChannelByID(ID)
+func (t *RequestResponseBackend) GetResponseWriteChannelByID(ID string) (chan<- rrbackend.TransportEnvelope, string) {
+	return t.getOrCreateChannelByID(ID), ID
 }
 
 func (t *RequestResponseBackend) ReleaseChannelByID(ID string) error {

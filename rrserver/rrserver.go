@@ -27,7 +27,7 @@ func (server *SimpleRequestResponseServer) Start() error {
 	if err != nil {
 		return err
 	}
-	server.requests = server.Backend.GetRequestReadChannelByID(server.RequestChannelID)
+	server.requests, _ = server.Backend.GetRequestReadChannelByID(server.RequestChannelID)
 
 	server.running = true
 
@@ -72,7 +72,7 @@ func (server *SimpleRequestResponseServer) listenForRequests() {
 				continue
 			}
 
-			responseChannel := server.Backend.GetResponseWriteChannelByID(rrEnvelope.ID)
+			responseChannel, _ := server.Backend.GetResponseWriteChannelByID(rrEnvelope.ID)
 
 			transportEnvelope, err := envelopeSerdes.SerializeForResponse(response)
 
