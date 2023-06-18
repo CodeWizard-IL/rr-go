@@ -4,6 +4,7 @@ import (
 	"common/util"
 	"fmt"
 	"forward/server"
+	"os"
 	"rrbuilder"
 	"time"
 )
@@ -26,9 +27,15 @@ func main() {
 	// Read ForwardProxyConfig from YAML file
 	var config ForwardProxyConfig
 
-	defaultConfigYaml := "config.yaml"
+	const defaultConfigYaml = "config.yaml"
 
-	err := util.ReadYamlToStruct(defaultConfigYaml, &config)
+	// Get config YAML from environment variable
+	configYaml := os.Getenv("CONFIG_YAML")
+	if configYaml == "" {
+		configYaml = defaultConfigYaml
+	}
+
+	err := util.ReadYamlToStruct(configYaml, &config)
 	if err != nil {
 		return
 	}

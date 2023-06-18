@@ -3,6 +3,7 @@ package main
 import (
 	"common/util"
 	"fmt"
+	"os"
 	"reverse/processor"
 	"reverse/server"
 	"rrbuilder"
@@ -20,9 +21,14 @@ func main() {
 	// Read ReverseProxyConfig from YAML file
 
 	var config ReverseProxyConfig
-	defaultConfigYaml := "config.yaml"
+	const defaultConfigYaml = "config.yaml"
+	// Get config YAML from environment variable
+	configYaml := os.Getenv("CONFIG_YAML")
+	if configYaml == "" {
+		configYaml = defaultConfigYaml
+	}
 
-	err := util.ReadYamlToStruct(defaultConfigYaml, &config)
+	err := util.ReadYamlToStruct(configYaml, &config)
 	if err != nil {
 		return
 	}
