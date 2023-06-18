@@ -1,10 +1,9 @@
 package main
 
 import (
+	"common/util"
 	"fmt"
 	"forward/server"
-	"gopkg.in/yaml.v3"
-	"os"
 	"rrbuilder"
 	"time"
 )
@@ -25,24 +24,14 @@ func main() {
 	fmt.Println("Request Response HTTP Proxy - Forwarder")
 
 	// Read ForwardProxyConfig from YAML file
-
-	configFile, err := os.Open("config.yaml")
-	if err != nil {
-		fmt.Println("Error opening config file: ", err)
-		return
-	}
-	defer func(configFile *os.File) {
-		_ = configFile.Close()
-	}(configFile)
-
 	var config ForwardProxyConfig
-	decoder := yaml.NewDecoder(configFile)
-	err = decoder.Decode(&config)
+
+	defaultConfigYaml := "config.yaml"
+
+	err := util.ReadYamlToStruct(defaultConfigYaml, &config)
 	if err != nil {
-		fmt.Println("Error decoding config file: ", err)
 		return
 	}
-
 	clientConfig := config.Client
 
 	client, err := rrbuilder.ClientFromConfig(clientConfig)

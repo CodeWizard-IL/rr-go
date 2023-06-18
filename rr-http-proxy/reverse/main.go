@@ -1,9 +1,8 @@
 package main
 
 import (
+	"common/util"
 	"fmt"
-	"gopkg.in/yaml.v3"
-	"os"
 	"reverse/processor"
 	"reverse/server"
 	"rrbuilder"
@@ -20,20 +19,11 @@ func main() {
 
 	// Read ReverseProxyConfig from YAML file
 
-	configFile, err := os.Open("config.yaml")
-	if err != nil {
-		fmt.Println("Error opening config file: ", err)
-		return
-	}
-	defer func(configFile *os.File) {
-		_ = configFile.Close()
-	}(configFile)
-
 	var config ReverseProxyConfig
-	decoder := yaml.NewDecoder(configFile)
-	err = decoder.Decode(&config)
+	defaultConfigYaml := "config.yaml"
+
+	err := util.ReadYamlToStruct(defaultConfigYaml, &config)
 	if err != nil {
-		fmt.Println("Error decoding config file: ", err)
 		return
 	}
 
