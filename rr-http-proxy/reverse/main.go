@@ -2,36 +2,42 @@ package main
 
 import (
 	"fmt"
+	"gopkg.in/yaml.v3"
+	"os"
+	"reverse/processor"
 	"reverse/server"
 	"rrbuilder"
 	"rrserver"
 )
 
-type DefaultHostURLMapper struct {
-	DefaultHost string
-}
-
-func (mapper *DefaultHostURLMapper) MapURL(_ string, url string) string {
-	return "http://" + mapper.DefaultHost + url
+type ReverseProxyConfig struct {
+	Server    rrbuilder.ServerConfig
+	UrlMapper processor.UrlMapperConfig
 }
 
 func main() {
 	fmt.Println("Request Response HTTP Proxy - Receiver")
 
-	// Use ServerFromConfig to create a server from a config file
+	// Read ReverseProxyConfig from YAML file
 
-	serverConfig := rrbuilder.ServerConfig{
-		Backend: rrbuilder.BackendConfig{
-			Type: "amqp09",
-			Configuration: map[string]any{
-				"ConnectionString": "amqp://guest:guest@localhost:5672/",
-			},
-		},
-		Type: "simple",
-		Configuration: map[string]any{
-			"RequestChannelID": "myrequest",
-		},
+	configFile, err := os.Open("config.yaml")
+	if err != nil {
+		fmt.Println("Error opening config file: ", err)
+		return
 	}
+	defer func(configFile *os.File) {
+		_ = configFile.Close()
+	}(configFile)
+
+	var config ReverseProxyConfig
+	decoder := yaml.NewDecoder(configFile)
+	err = decoder.Decode(&config)
+	if err != nil {
+		fmt.Println("Error decoding config file: ", err)
+		return
+	}
+
+	serverConfig := config.Server
 
 	partiallyConfiguredServer, err := rrbuilder.ServerFromConfig(serverConfig)
 	if err != nil {
@@ -47,11 +53,16 @@ func main() {
 		return
 	}
 
+	// Build the URLMapper
+
+	urlMapper, err := processor.UrlMapperFromConfig(config.UrlMapper)
+	if err != nil {
+		fmt.Println("Error creating URLMapper: ", err)
+		return
+	}
 	reverseProxyServer := server.ReverseProxyServer{
-		RRServer: *simpleServer,
-		UrlMapper: &DefaultHostURLMapper{
-			DefaultHost: "localhost:3000",
-		},
+		RRServer:  *simpleServer,
+		UrlMapper: urlMapper,
 	}
 
 	reverseProxyServer.Start()

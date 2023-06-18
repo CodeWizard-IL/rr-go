@@ -1,0 +1,12 @@
+server:
+  backend:
+    type: amqp09
+    configuration:
+      ConnectionString: amqp://guest:guest@localhost:5672/
+  type: simple
+  configuration:
+    RequestChannelID: myrequest
+
+urlmapper:
+  type: first-path
+  configuration: {}

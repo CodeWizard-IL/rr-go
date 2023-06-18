@@ -1,0 +1,14 @@
+client:
+  backend:
+    type: amqp09
+    configuration:
+      ConnectionString: amqp://guest:guest@localhost:5672/
+  type: simple
+  configuration:
+    RequestChannelID: myrequest
+    TimeoutMillis: 10000
+listener:
+  listenaddress: :8080
+  readtimeout: 10s
+  writetimeout: 10s
+  maxheaderbytes: 1048576
