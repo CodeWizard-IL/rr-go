@@ -7,7 +7,7 @@ import (
 )
 
 type Amqp09Backend struct {
-	ConnectString string
+	ConnectionString string
 
 	amqpConnection *amqp.Connection
 	amqpChannel    *amqp.Channel
@@ -18,7 +18,7 @@ type Amqp09Backend struct {
 func (backend *Amqp09Backend) Connect() error {
 	// Connect to RabbitMQ server
 	//conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
-	conn, err := amqp.Dial(backend.ConnectString)
+	conn, err := amqp.Dial(backend.ConnectionString)
 	if err != nil {
 		return err
 	}

@@ -7,7 +7,7 @@ use (
 	./test
 	./rrbackendamqp09
 	./rrbuilder
-	./rrbackendazsmb
+	./rrbackendazsb
 	./rr-http-proxy/forward
 	./rr-http-proxy/common
 	./rr-http-proxy/reverse

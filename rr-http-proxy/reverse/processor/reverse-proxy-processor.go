@@ -16,18 +16,14 @@ type ReverseProxyProcessor struct {
 	UrlMapper URLMapper
 }
 
-// NewReverseProxyProcessor Creates a new ReverseProxyProcessor
-func NewReverseProxyProcessor(urlMapper URLMapper) *ReverseProxyProcessor {
-	return &ReverseProxyProcessor{UrlMapper: urlMapper}
-}
-
-// Process Processes the request and returns a response
+// ProcessRequest Processes the request and returns a response
 func (processor *ReverseProxyProcessor) ProcessRequest(request rrbackend.RREnvelope) (rrbackend.RREnvelope, error) {
 
 	var requestContainer data.RequestContainer
-	json.Unmarshal(request.Payload, &requestContainer)
-
-	// TODO: Implement error handling
+	err := json.Unmarshal(request.Payload, &requestContainer)
+	if err != nil {
+		return rrbackend.RREnvelope{}, err
+	}
 
 	forwardUrl := processor.UrlMapper.MapURL(requestContainer.Host, requestContainer.RawURI)
 
@@ -53,24 +49,30 @@ func (processor *ReverseProxyProcessor) ProcessRequest(request rrbackend.RREnvel
 
 	response, err := client.Do(newRequest)
 
-	if err != nil {
-		// TODO: Handle error
-	}
-
-	bodyBytes, err := io.ReadAll(response.Body)
+	var responseContainer data.ResponseContainer
 
 	if err != nil {
-		// TODO: Handle error
-	}
+		responseContainer = data.ResponseContainer{
+			StatusCode: http.StatusBadGateway,
+			Headers:    http.Header{},
+			Body:       []byte(err.Error()),
+		}
+	} else {
 
-	responseContainer := data.ResponseContainer{
-		StatusCode: response.StatusCode,
-		Headers:    response.Header,
-		Body:       bodyBytes,
+		bodyBytes, err := io.ReadAll(response.Body)
+
+		if err != nil {
+			// TODO: Handle error
+		}
+
+		responseContainer = data.ResponseContainer{
+			StatusCode: response.StatusCode,
+			Headers:    response.Header,
+			Body:       bodyBytes,
+		}
 	}
 
 	responseBytes, err := json.Marshal(responseContainer)
-
 	if err != nil {
 		// TODO: Handle error
 	}

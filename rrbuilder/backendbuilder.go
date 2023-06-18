@@ -32,8 +32,8 @@ func BackendFromConfig(config BackendConfig) (rrbackend.RequestResponseBackend, 
 		return &amqp09Backend, nil
 	case "local":
 		return &local.RequestResponseBackend{}, nil
-	case "azsmb":
-		rrBackendAzSMB := rrbackendazsmb.RRBackendAzSMB{}
+	case "azsb":
+		rrBackendAzSMB := rrbackendazsb.AzSBBackend{}
 		err := mapstructure.Decode(config.Configuration, &rrBackendAzSMB)
 		if err != nil {
 			return nil, err

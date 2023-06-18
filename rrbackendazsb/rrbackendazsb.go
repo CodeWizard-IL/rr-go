@@ -1,4 +1,4 @@
-package rrbackendazsmb
+package rrbackendazsb
 
 import (
 	"context"
@@ -13,7 +13,7 @@ type SessionReceiver struct {
 	Receiver  *azservicebus.SessionReceiver
 }
 
-type RRBackendAzSMB struct {
+type AzSBBackend struct {
 	ConnectionString    string
 	RequestQueueName    string
 	ResponseQueueName   string
@@ -31,15 +31,15 @@ type RRBackendAzSMB struct {
 	releaseReceiver chan SessionReceiver
 }
 
-func (backend *RRBackendAzSMB) getObtainReceiverChannel() <-chan SessionReceiver {
+func (backend *AzSBBackend) getObtainReceiverChannel() <-chan SessionReceiver {
 	return backend.obtainReceiver
 }
 
-func (backend *RRBackendAzSMB) getReleaseReceiverChannel() chan<- SessionReceiver {
+func (backend *AzSBBackend) getReleaseReceiverChannel() chan<- SessionReceiver {
 	return backend.releaseReceiver
 }
 
-func (backend *RRBackendAzSMB) newSessionReceiver() SessionReceiver {
+func (backend *AzSBBackend) newSessionReceiver() SessionReceiver {
 	sessionID := uuid.New().String()
 	receiver, err := backend.client.AcceptSessionForQueue(context.TODO(), backend.ResponseQueueName, sessionID, nil)
 	if err != nil {
@@ -51,7 +51,7 @@ func (backend *RRBackendAzSMB) newSessionReceiver() SessionReceiver {
 	backend.sessionReceiversMap[sessionID] = sessionReceiver
 	return sessionReceiver
 }
-func (backend *RRBackendAzSMB) Connect() error {
+func (backend *AzSBBackend) Connect() error {
 
 	if backend.client != nil {
 		log.Println("Already connected")
@@ -120,7 +120,7 @@ func (backend *RRBackendAzSMB) Connect() error {
 	return err
 }
 
-func (backend *RRBackendAzSMB) getOrCreateRequestReceiverForServer() (*azservicebus.Receiver, error) {
+func (backend *AzSBBackend) getOrCreateRequestReceiverForServer() (*azservicebus.Receiver, error) {
 	var err error
 	if backend.requestQueueReceiver == nil {
 		backend.requestQueueReceiver, err = backend.client.NewReceiverForQueue(backend.RequestQueueName, nil)
@@ -133,7 +133,7 @@ func (backend *RRBackendAzSMB) getOrCreateRequestReceiverForServer() (*azservice
 }
 
 // GetRequestReadChannelByID returns a channel that can be used to read requests from the specified ID
-func (backend *RRBackendAzSMB) GetRequestReadChannelByID(ID string) (<-chan TransportEnvelope, string) {
+func (backend *AzSBBackend) GetRequestReadChannelByID(ID string) (<-chan TransportEnvelope, string) {
 	receiver, err := backend.getOrCreateRequestReceiverForServer()
 
 	if err != nil {
@@ -168,7 +168,7 @@ func (backend *RRBackendAzSMB) GetRequestReadChannelByID(ID string) (<-chan Tran
 }
 
 // GetResponseReadChannelByID returns a channel that can be used to read responses from the specified ID
-func (backend *RRBackendAzSMB) GetResponseReadChannelByID(ID string) (<-chan TransportEnvelope, string) {
+func (backend *AzSBBackend) GetResponseReadChannelByID(ID string) (<-chan TransportEnvelope, string) {
 
 	channel := make(chan TransportEnvelope)
 	sessionID := ID
@@ -216,7 +216,7 @@ func (backend *RRBackendAzSMB) GetResponseReadChannelByID(ID string) (<-chan Tra
 }
 
 // GetRequestWriteChannelByID returns a channel that can be used to write requests to the specified ID
-func (backend *RRBackendAzSMB) GetRequestWriteChannelByID(ID string) (chan<- TransportEnvelope, string) {
+func (backend *AzSBBackend) GetRequestWriteChannelByID(ID string) (chan<- TransportEnvelope, string) {
 	channel := make(chan TransportEnvelope)
 
 	go func() {
@@ -242,7 +242,7 @@ func (backend *RRBackendAzSMB) GetRequestWriteChannelByID(ID string) (chan<- Tra
 }
 
 // GetResponseWriteChannelByID returns a channel that can be used to write responses to the specified ID
-func (backend *RRBackendAzSMB) GetResponseWriteChannelByID(ID string) (chan<- TransportEnvelope, string) {
+func (backend *AzSBBackend) GetResponseWriteChannelByID(ID string) (chan<- TransportEnvelope, string) {
 	channel := make(chan TransportEnvelope)
 
 	go func() {
@@ -269,7 +269,7 @@ func (backend *RRBackendAzSMB) GetResponseWriteChannelByID(ID string) (chan<- Tr
 	return channel, ID
 }
 
-func (backend *RRBackendAzSMB) ReleaseChannelByID(ID string) error {
+func (backend *AzSBBackend) ReleaseChannelByID(ID string) error {
 
 	sessionReceiver := backend.sessionReceiversMap[ID]
 
@@ -277,6 +277,6 @@ func (backend *RRBackendAzSMB) ReleaseChannelByID(ID string) error {
 	return nil
 }
 
-func (backend *RRBackendAzSMB) GetEnvelopeSerdes() EnvelopeSerdes {
-	return &AzSMBTransportEnvelopeSerses{}
+func (backend *AzSBBackend) GetEnvelopeSerdes() EnvelopeSerdes {
+	return &AzSBTransportEnvelopeSerdes{}
 }

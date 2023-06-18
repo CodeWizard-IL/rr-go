@@ -1,4 +1,4 @@
-package rrbackendazsmb
+package rrbackendazsb
 
 import (
 	"github.com/Azure/azure-sdk-for-go/sdk/messaging/azservicebus"
@@ -6,11 +6,11 @@ import (
 )
 
 // Implements EnvelopeSerdes
-type AzSMBTransportEnvelopeSerses struct {
+type AzSBTransportEnvelopeSerdes struct {
 }
 
 // SerializeForRequest serializes the specified envelope for sending as a request
-func (serdes *AzSMBTransportEnvelopeSerses) SerializeForRequest(envelope RREnvelope) (TransportEnvelope, error) {
+func (serdes *AzSBTransportEnvelopeSerdes) SerializeForRequest(envelope RREnvelope) (TransportEnvelope, error) {
 	msg := azservicebus.Message{
 		Body:                  envelope.Payload,
 		ContentType:           &envelope.ContentType,
@@ -21,7 +21,7 @@ func (serdes *AzSMBTransportEnvelopeSerses) SerializeForRequest(envelope RREnvel
 }
 
 // SerializeForResponse serializes the specified envelope for sending as a response
-func (serdes *AzSMBTransportEnvelopeSerses) SerializeForResponse(envelope RREnvelope) (TransportEnvelope, error) {
+func (serdes *AzSBTransportEnvelopeSerdes) SerializeForResponse(envelope RREnvelope) (TransportEnvelope, error) {
 	msg := azservicebus.Message{
 		Body:                  envelope.Payload,
 		ContentType:           &envelope.ContentType,
@@ -32,7 +32,7 @@ func (serdes *AzSMBTransportEnvelopeSerses) SerializeForResponse(envelope RREnve
 }
 
 // DeserializeForRequest deserializes the specified envelope as a request
-func (serdes *AzSMBTransportEnvelopeSerses) DeserializeForRequest(envelope TransportEnvelope) (RREnvelope, error) {
+func (serdes *AzSBTransportEnvelopeSerdes) DeserializeForRequest(envelope TransportEnvelope) (RREnvelope, error) {
 	msg, ok := envelope.(azservicebus.ReceivedMessage)
 	if !ok {
 		return RREnvelope{}, UnsupportedTransportEnvelopeError{Reason: "Not an azservicebus.Message"}
@@ -47,7 +47,7 @@ func (serdes *AzSMBTransportEnvelopeSerses) DeserializeForRequest(envelope Trans
 }
 
 // DeserializeForResponse deserializes the specified envelope as a response
-func (serdes *AzSMBTransportEnvelopeSerses) DeserializeForResponse(envelope TransportEnvelope) (RREnvelope, error) {
+func (serdes *AzSBTransportEnvelopeSerdes) DeserializeForResponse(envelope TransportEnvelope) (RREnvelope, error) {
 	msg, ok := envelope.(azservicebus.ReceivedMessage)
 	if !ok {
 		return RREnvelope{}, UnsupportedTransportEnvelopeError{Reason: "Not an azservicebus.Message"}

@@ -6,44 +6,35 @@ import (
 	"reverse/processor"
 	rserver "reverse/server"
 	"rrbuilder"
-	//"rrbackend/local"
-	//. "rrbackendazsmb"
 	"rrclient"
 	"rrserver"
 	"time"
 )
 
-type DefaultHostURLMapper struct {
-	DefaultHost string
-}
-
-func (mapper *DefaultHostURLMapper) MapURL(_ string, url string) string {
-	return "http://" + mapper.DefaultHost + url
-}
-
 func main() {
 	//backend := local.RequestResponseBackend{}
 
-	//backendConfig := rrbuilder.BackendConfig{
-	//	Type: "azsmb",
-	//	Configuration: map[string]any{
-	//		"ConnectionString":  "Endpoint=sb://cwalexeyrr.servicebus.windows.net/;SharedAccessKeyName=rrgo;SharedAccessKey=sKMyUVlVxhjG62QrJh3mLlS/zXLpIK/a9+ASbLD88Xc=",
-	//		"RequestQueueName":  "myrequest",
-	//		"ResponseQueueName": "myrequest-response",
-	//	},
-	//}
+	backendConfig := rrbuilder.BackendConfig{
+		Type: "azsb",
+		Configuration: map[string]any{
+			"ConnectionString":    "Endpoint=sb://cwalexeyrr.servicebus.windows.net/;SharedAccessKeyName=rrgo;SharedAccessKey=sKMyUVlVxhjG62QrJh3mLlS/zXLpIK/a9+ASbLD88Xc=",
+			"RequestQueueName":    "myrequest",
+			"ResponseQueueName":   "myrequest-response",
+			"MinSessionReceivers": 1,
+		},
+	}
 
 	//backendConfig := rrbuilder.BackendConfig{
 	//	Type:          "local",
 	//	Configuration: map[string]any{},
 	//}
 
-	backendConfig := rrbuilder.BackendConfig{
-		Type: "amqp09",
-		Configuration: map[string]any{
-			"ConnectString": "amqp://guest:guest@localhost:5672/",
-		},
-	}
+	//backendConfig := rrbuilder.BackendConfig{
+	//	Type: "amqp09",
+	//	Configuration: map[string]any{
+	//		"ConnectionString": "amqp://guest:guest@localhost:5672/",
+	//	},
+	//}
 
 	backend, err := rrbuilder.BackendFromConfig(backendConfig)
 	if err != nil {
