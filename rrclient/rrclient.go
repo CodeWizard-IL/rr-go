@@ -15,6 +15,7 @@ func (e ResponseTimeoutError) Error() string {
 }
 
 type RequestResponseClient interface {
+	Start() error
 	SendRequestAsync(request RREnvelope) (ResponseHandler, error)
 	SendRequest(request RREnvelope) (RREnvelope, error)
 }
@@ -63,6 +64,12 @@ type SimpleRequestResponseClient struct {
 	RequestChannelID string
 	Backend          RequestResponseBackend
 	TimeoutMillis    int
+}
+
+// Start the client
+func (client *SimpleRequestResponseClient) Start() error {
+	err := client.Backend.Connect()
+	return err
 }
 
 func (client *SimpleRequestResponseClient) SendRequestAsync(request RREnvelope) (ResponseHandler, error) {

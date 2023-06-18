@@ -17,11 +17,16 @@ type ForwardProxyServer struct {
 }
 
 func (server *ForwardProxyServer) Start() {
-	handler := handler.NewProxyHandler(server.RRClient)
+	err := server.RRClient.Start()
+	if err != nil {
+		log.Fatal("Error starting client: ", err)
+	}
+
+	proxyHandler := handler.NewProxyHandler(server.RRClient)
 
 	s := &http.Server{
 		Addr:           server.ListenAddress,
-		Handler:        handler,
+		Handler:        proxyHandler,
 		ReadTimeout:    server.ReadTimeout,
 		WriteTimeout:   server.WriteTimeout,
 		MaxHeaderBytes: server.MaxHeaderBytes,

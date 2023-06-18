@@ -3,26 +3,37 @@ package main
 import (
 	"fmt"
 	"forward/server"
-	"rrbackend/local"
-	"rrclient"
+	"rrbuilder"
 	"time"
 )
 
 func main() {
 	fmt.Println("Request Response HTTP Proxy - Forwarder")
 
-	//TODO: make this configurable
+	// Use ClientFromConfig to create a client from a config file
 
-	backend := local.RequestResponseBackend{}
+	clientConfig := rrbuilder.ClientConfig{
+		Backend: rrbuilder.BackendConfig{
+			Type: "amqp09",
+			Configuration: map[string]any{
+				"ConnectionString": "amqp://guest:guest@localhost:5672/",
+			},
+		},
+		Type: "simple",
+		Configuration: map[string]any{
+			"TimeoutMillis":    10000,
+			"RequestChannelID": "myrequest",
+		},
+	}
 
-	client := rrclient.SimpleRequestResponseClient{
-		Backend:          &backend,
-		TimeoutMillis:    10000,
-		RequestChannelID: "request",
+	client, err := rrbuilder.ClientFromConfig(clientConfig)
+	if err != nil {
+		fmt.Println("Error creating client: ", err)
+		return
 	}
 
 	proxyServer := server.ForwardProxyServer{
-		RRClient:       &client,
+		RRClient:       client,
 		ListenAddress:  ":8080",
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
