@@ -1,13 +1,8 @@
 go 1.20
 
 use (
-	./rrbackend
-	./rrclient
-	./rrserver
+	./rr-lib
 	./test
-	./rrbackendamqp09
-	./rrbuilder
-	./rrbackendazsb
 	./rr-http-proxy/forward
 	./rr-http-proxy/common
 	./rr-http-proxy/reverse

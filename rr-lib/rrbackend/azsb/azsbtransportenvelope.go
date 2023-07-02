@@ -1,11 +1,10 @@
-package rrbackendazsb
+package azsb
 
 import (
 	"github.com/Azure/azure-sdk-for-go/sdk/messaging/azservicebus"
-	. "rrbackend"
+	. "rr-lib/rrbackend"
 )
 
-// Implements EnvelopeSerdes
 type AzSBTransportEnvelopeSerdes struct {
 }
 

@@ -1,11 +1,11 @@
-package rrbackendazsb
+package azsb
 
 import (
 	"context"
 	"github.com/Azure/azure-sdk-for-go/sdk/messaging/azservicebus"
 	"github.com/google/uuid"
 	"log"
-	. "rrbackend"
+	. "rr-lib/rrbackend"
 )
 
 type SessionReceiver struct {
@@ -13,7 +13,7 @@ type SessionReceiver struct {
 	Receiver  *azservicebus.SessionReceiver
 }
 
-type AzSBBackend struct {
+type RRBackendAzSB struct {
 	ConnectionString    string
 	RequestQueueName    string
 	ResponseQueueName   string
@@ -31,15 +31,15 @@ type AzSBBackend struct {
 	releaseReceiver chan SessionReceiver
 }
 
-func (backend *AzSBBackend) getObtainReceiverChannel() <-chan SessionReceiver {
+func (backend *RRBackendAzSB) getObtainReceiverChannel() <-chan SessionReceiver {
 	return backend.obtainReceiver
 }
 
-func (backend *AzSBBackend) getReleaseReceiverChannel() chan<- SessionReceiver {
+func (backend *RRBackendAzSB) getReleaseReceiverChannel() chan<- SessionReceiver {
 	return backend.releaseReceiver
 }
 
-func (backend *AzSBBackend) newSessionReceiver() SessionReceiver {
+func (backend *RRBackendAzSB) newSessionReceiver() SessionReceiver {
 	sessionID := uuid.New().String()
 	receiver, err := backend.client.AcceptSessionForQueue(context.TODO(), backend.ResponseQueueName, sessionID, nil)
 	if err != nil {
@@ -51,7 +51,7 @@ func (backend *AzSBBackend) newSessionReceiver() SessionReceiver {
 	backend.sessionReceiversMap[sessionID] = sessionReceiver
 	return sessionReceiver
 }
-func (backend *AzSBBackend) Connect() error {
+func (backend *RRBackendAzSB) Connect() error {
 
 	if backend.client != nil {
 		log.Println("Already connected")
@@ -120,7 +120,7 @@ func (backend *AzSBBackend) Connect() error {
 	return err
 }
 
-func (backend *AzSBBackend) getOrCreateRequestReceiverForServer() (*azservicebus.Receiver, error) {
+func (backend *RRBackendAzSB) getOrCreateRequestReceiverForServer() (*azservicebus.Receiver, error) {
 	var err error
 	if backend.requestQueueReceiver == nil {
 		backend.requestQueueReceiver, err = backend.client.NewReceiverForQueue(backend.RequestQueueName, nil)
@@ -133,7 +133,7 @@ func (backend *AzSBBackend) getOrCreateRequestReceiverForServer() (*azservicebus
 }
 
 // GetRequestReadChannelByID returns a channel that can be used to read requests from the specified ID
-func (backend *AzSBBackend) GetRequestReadChannelByID(ID string) (<-chan TransportEnvelope, string) {
+func (backend *RRBackendAzSB) GetRequestReadChannelByID(ID string) (<-chan TransportEnvelope, string) {
 	receiver, err := backend.getOrCreateRequestReceiverForServer()
 
 	if err != nil {
@@ -168,7 +168,7 @@ func (backend *AzSBBackend) GetRequestReadChannelByID(ID string) (<-chan Transpo
 }
 
 // GetResponseReadChannelByID returns a channel that can be used to read responses from the specified ID
-func (backend *AzSBBackend) GetResponseReadChannelByID(ID string) (<-chan TransportEnvelope, string) {
+func (backend *RRBackendAzSB) GetResponseReadChannelByID(ID string) (<-chan TransportEnvelope, string) {
 
 	channel := make(chan TransportEnvelope)
 	sessionID := ID
@@ -216,7 +216,7 @@ func (backend *AzSBBackend) GetResponseReadChannelByID(ID string) (<-chan Transp
 }
 
 // GetRequestWriteChannelByID returns a channel that can be used to write requests to the specified ID
-func (backend *AzSBBackend) GetRequestWriteChannelByID(ID string) (chan<- TransportEnvelope, string) {
+func (backend *RRBackendAzSB) GetRequestWriteChannelByID(ID string) (chan<- TransportEnvelope, string) {
 	channel := make(chan TransportEnvelope)
 
 	go func() {
@@ -242,7 +242,7 @@ func (backend *AzSBBackend) GetRequestWriteChannelByID(ID string) (chan<- Transp
 }
 
 // GetResponseWriteChannelByID returns a channel that can be used to write responses to the specified ID
-func (backend *AzSBBackend) GetResponseWriteChannelByID(ID string) (chan<- TransportEnvelope, string) {
+func (backend *RRBackendAzSB) GetResponseWriteChannelByID(ID string) (chan<- TransportEnvelope, string) {
 	channel := make(chan TransportEnvelope)
 
 	go func() {
@@ -269,7 +269,7 @@ func (backend *AzSBBackend) GetResponseWriteChannelByID(ID string) (chan<- Trans
 	return channel, ID
 }
 
-func (backend *AzSBBackend) ReleaseChannelByID(ID string) error {
+func (backend *RRBackendAzSB) ReleaseChannelByID(ID string) error {
 
 	sessionReceiver := backend.sessionReceiversMap[ID]
 
@@ -277,6 +277,6 @@ func (backend *AzSBBackend) ReleaseChannelByID(ID string) error {
 	return nil
 }
 
-func (backend *AzSBBackend) GetEnvelopeSerdes() EnvelopeSerdes {
+func (backend *RRBackendAzSB) GetEnvelopeSerdes() EnvelopeSerdes {
 	return &AzSBTransportEnvelopeSerdes{}
 }

@@ -6,8 +6,8 @@ import (
 	"os"
 	"reverse/processor"
 	"reverse/server"
-	"rrbuilder"
-	"rrserver"
+	"rr-lib/rrbuilder"
+	"rr-lib/rrserver"
 )
 
 type ReverseProxyConfig struct {

@@ -4,12 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	. "rrbackend"
-	"rrbackend/local"
-	//. "rrbackendazsmb"
-	. "rrbuilder"
-	. "rrclient"
-	. "rrserver"
+	. "rr-lib/rrbackend"
+	. "rr-lib/rrbackend/local"
+	. "rr-lib/rrbuilder"
+	. "rr-lib/rrclient"
+	. "rr-lib/rrserver"
 )
 
 type UnsupportedContentTypeError struct {
@@ -64,7 +63,7 @@ func (processor *TestProcessor) ProcessRequest(request RREnvelope) (RREnvelope, 
 func main() {
 	fmt.Println("Starting RR tests")
 
-	testBackend := local.RequestResponseBackend{}
+	testBackend := RRBackendLocal{}
 
 	//testBackend := Amqp09Backend{
 	//	ConnectString: "amqp://guest:guest@localhost:5672/",

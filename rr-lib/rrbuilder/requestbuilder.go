@@ -1,7 +1,7 @@
 package rrbuilder
 
-import . "rrbackend"
-import . "rrclient"
+import . "rr-lib/rrclient"
+import . "rr-lib/rrbackend"
 
 type RequestBuilder struct {
 	envelope RREnvelope

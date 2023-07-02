@@ -3,7 +3,7 @@ package rrclient
 import (
 	"github.com/google/uuid"
 	"log"
-	. "rrbackend"
+	. "rr-lib/rrbackend"
 	"time"
 )
 

@@ -5,9 +5,9 @@ import (
 	"log"
 	"reverse/processor"
 	rserver "reverse/server"
-	"rrbuilder"
-	"rrclient"
-	"rrserver"
+	"rr-lib/rrbuilder"
+	"rr-lib/rrclient"
+	"rr-lib/rrserver"
 	"time"
 )
 
