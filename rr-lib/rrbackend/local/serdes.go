@@ -1,6 +1,6 @@
 package local
 
-import "rr-lib/rrbackend"
+import "github.com/CodeWizard-IL/rr-go/rr-lib/rrbackend"
 
 type TransportEnvelopeSerdes struct {
 }

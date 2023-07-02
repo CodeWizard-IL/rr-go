@@ -1,8 +1,8 @@
 package server
 
 import (
+	"github.com/CodeWizard-IL/rr-go/rr-lib/rrserver"
 	"rr-http-proxy/reverse/processor"
-	"rr-lib/rrserver"
 )
 
 type ReverseProxyServer struct {

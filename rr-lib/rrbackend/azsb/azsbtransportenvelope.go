@@ -2,7 +2,7 @@ package azsb
 
 import (
 	"github.com/Azure/azure-sdk-for-go/sdk/messaging/azservicebus"
-	. "rr-lib/rrbackend"
+	. "github.com/CodeWizard-IL/rr-go/rr-lib/rrbackend"
 )
 
 type AzSBTransportEnvelopeSerdes struct {

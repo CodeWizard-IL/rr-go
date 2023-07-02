@@ -1,8 +1,8 @@
 package local
 
 import (
+	"github.com/CodeWizard-IL/rr-go/rr-lib/rrbackend"
 	"log"
-	"rr-lib/rrbackend"
 )
 
 type RRBackendLocal struct {

@@ -1,21 +1,21 @@
 package rrbuilder
 
-import . "rr-lib/rrclient"
-import . "rr-lib/rrbackend"
+import . "github.com/CodeWizard-IL/rr-go/rr-lib/rrclient"
+import "github.com/CodeWizard-IL/rr-go/rr-lib/rrbackend"
 
 type RequestBuilder struct {
-	envelope RREnvelope
+	envelope rrbackend.RREnvelope
 }
 
 func NewRequest() *RequestBuilder {
 	return &RequestBuilder{
-		envelope: RREnvelope{},
+		envelope: rrbackend.RREnvelope{},
 	}
 }
 
-func ReplyTo(request RREnvelope) *RequestBuilder {
+func ReplyTo(request rrbackend.RREnvelope) *RequestBuilder {
 	return &RequestBuilder{
-		envelope: RREnvelope{
+		envelope: rrbackend.RREnvelope{
 			ID: request.ID,
 		},
 	}
@@ -49,7 +49,7 @@ func (builder *RequestBuilder) WithPayload(payload []byte) *RequestBuilder {
 	return builder
 }
 
-func (builder *RequestBuilder) Build() RREnvelope {
+func (builder *RequestBuilder) Build() rrbackend.RREnvelope {
 	return builder.envelope
 }
 
@@ -57,6 +57,6 @@ func (builder *RequestBuilder) SendAsync(client RequestResponseClient) (Response
 	return client.SendRequestAsync(builder.Build())
 }
 
-func (builder *RequestBuilder) Send(client RequestResponseClient) (RREnvelope, error) {
+func (builder *RequestBuilder) Send(client RequestResponseClient) (rrbackend.RREnvelope, error) {
 	return client.SendRequest(builder.Build())
 }

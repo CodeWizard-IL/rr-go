@@ -3,11 +3,11 @@ package processor
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/CodeWizard-IL/rr-go/rr-lib/rrbackend"
+	"github.com/CodeWizard-IL/rr-go/rr-lib/rrbuilder"
 	"io"
 	"net/http"
 	"rr-http-proxy/common/data"
-	"rr-lib/rrbackend"
-	"rr-lib/rrbuilder"
 	"time"
 )
 

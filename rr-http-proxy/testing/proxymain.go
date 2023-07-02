@@ -1,13 +1,13 @@
 package main
 
 import (
+	"github.com/CodeWizard-IL/rr-go/rr-lib/rrbuilder"
+	"github.com/CodeWizard-IL/rr-go/rr-lib/rrclient"
+	"github.com/CodeWizard-IL/rr-go/rr-lib/rrserver"
 	"log"
 	fserver "rr-http-proxy/forward/server"
 	"rr-http-proxy/reverse/processor"
 	rserver "rr-http-proxy/reverse/server"
-	"rr-lib/rrbuilder"
-	"rr-lib/rrclient"
-	"rr-lib/rrserver"
 	"time"
 )
 

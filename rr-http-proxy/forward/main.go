@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
+	"github.com/CodeWizard-IL/rr-go/rr-lib/rrbuilder"
 	"os"
 	"rr-http-proxy/common/util"
 	"rr-http-proxy/forward/server"
-	"rr-lib/rrbuilder"
 	"time"
 )
 

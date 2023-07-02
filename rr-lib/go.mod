@@ -1,4 +1,4 @@
-module rr-lib
+module github.com/CodeWizard-IL/rr-go/rr-lib
 
 go 1.20
 

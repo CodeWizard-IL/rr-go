@@ -1,8 +1,8 @@
 package rrbuilder
 
 import (
+	"github.com/CodeWizard-IL/rr-go/rr-lib/rrclient"
 	"github.com/mitchellh/mapstructure"
-	"rr-lib/rrclient"
 )
 
 type ClientConfig struct {

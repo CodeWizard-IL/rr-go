@@ -1,10 +1,10 @@
 package server
 
 import (
+	"github.com/CodeWizard-IL/rr-go/rr-lib/rrclient"
 	"log"
 	"net/http"
 	"rr-http-proxy/forward/handler"
-	"rr-lib/rrclient"
 	"time"
 )
 

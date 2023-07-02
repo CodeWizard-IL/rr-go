@@ -2,12 +2,12 @@ package main
 
 import (
 	"fmt"
+	"github.com/CodeWizard-IL/rr-go/rr-lib/rrbuilder"
+	"github.com/CodeWizard-IL/rr-go/rr-lib/rrserver"
 	"os"
 	"rr-http-proxy/common/util"
 	"rr-http-proxy/reverse/processor"
 	"rr-http-proxy/reverse/server"
-	"rr-lib/rrbuilder"
-	"rr-lib/rrserver"
 )
 
 type ReverseProxyConfig struct {

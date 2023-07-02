@@ -1,11 +1,11 @@
 package rrbuilder
 
 import (
+	"github.com/CodeWizard-IL/rr-go/rr-lib/rrbackend"
+	"github.com/CodeWizard-IL/rr-go/rr-lib/rrbackend/amqp09"
+	"github.com/CodeWizard-IL/rr-go/rr-lib/rrbackend/azsb"
+	"github.com/CodeWizard-IL/rr-go/rr-lib/rrbackend/local"
 	"github.com/mitchellh/mapstructure"
-	"rr-lib/rrbackend"
-	"rr-lib/rrbackend/amqp09"
-	"rr-lib/rrbackend/azsb"
-	"rr-lib/rrbackend/local"
 )
 
 type UnsupportedBackendTypeError struct {

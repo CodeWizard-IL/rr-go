@@ -3,10 +3,10 @@ package handler
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/CodeWizard-IL/rr-go/rr-lib/rrbuilder"
+	"github.com/CodeWizard-IL/rr-go/rr-lib/rrclient"
 	"net/http"
 	"rr-http-proxy/common/data"
-	"rr-lib/rrbuilder"
-	"rr-lib/rrclient"
 )
 
 type ProxyHandler struct {

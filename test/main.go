@@ -3,12 +3,12 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	. "github.com/CodeWizard-IL/rr-go/rr-lib/rrbackend"
+	. "github.com/CodeWizard-IL/rr-go/rr-lib/rrbackend/local"
+	. "github.com/CodeWizard-IL/rr-go/rr-lib/rrbuilder"
+	. "github.com/CodeWizard-IL/rr-go/rr-lib/rrclient"
+	. "github.com/CodeWizard-IL/rr-go/rr-lib/rrserver"
 	"log"
-	. "rr-lib/rrbackend"
-	. "rr-lib/rrbackend/local"
-	. "rr-lib/rrbuilder"
-	. "rr-lib/rrclient"
-	. "rr-lib/rrserver"
 )
 
 type UnsupportedContentTypeError struct {

@@ -3,9 +3,9 @@ package azsb
 import (
 	"context"
 	"github.com/Azure/azure-sdk-for-go/sdk/messaging/azservicebus"
+	. "github.com/CodeWizard-IL/rr-go/rr-lib/rrbackend"
 	"github.com/google/uuid"
 	"log"
-	. "rr-lib/rrbackend"
 )
 
 type SessionReceiver struct {

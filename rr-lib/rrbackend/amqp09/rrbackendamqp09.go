@@ -1,9 +1,9 @@
 package amqp09
 
 import (
+	. "github.com/CodeWizard-IL/rr-go/rr-lib/rrbackend"
 	"github.com/streadway/amqp"
 	"log"
-	. "rr-lib/rrbackend"
 )
 
 type RRBackendAmqp09 struct {

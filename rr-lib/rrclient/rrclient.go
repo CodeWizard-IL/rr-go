@@ -1,9 +1,9 @@
 package rrclient
 
 import (
+	. "github.com/CodeWizard-IL/rr-go/rr-lib/rrbackend"
 	"github.com/google/uuid"
 	"log"
-	. "rr-lib/rrbackend"
 	"time"
 )
 
