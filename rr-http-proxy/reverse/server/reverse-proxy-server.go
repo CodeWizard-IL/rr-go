@@ -1,7 +1,7 @@
 package server
 
 import (
-	"reverse/processor"
+	"rr-http-proxy/reverse/processor"
 	"rr-lib/rrserver"
 )
 

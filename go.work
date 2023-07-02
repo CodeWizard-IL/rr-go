@@ -3,8 +3,5 @@ go 1.20
 use (
 	./rr-lib
 	./test
-	./rr-http-proxy/forward
-	./rr-http-proxy/common
-	./rr-http-proxy/reverse
-	./rr-http-proxy/testing
+	./rr-http-proxy
 )

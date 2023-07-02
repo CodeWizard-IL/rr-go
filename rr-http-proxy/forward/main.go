@@ -1,10 +1,10 @@
 package main
 
 import (
-	"common/util"
 	"fmt"
-	"forward/server"
 	"os"
+	"rr-http-proxy/common/util"
+	"rr-http-proxy/forward/server"
 	"rr-lib/rrbuilder"
 	"time"
 )
