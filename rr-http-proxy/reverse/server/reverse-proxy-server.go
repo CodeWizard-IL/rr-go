@@ -1,8 +1,8 @@
 package server
 
 import (
-	"reverse/processor"
-	"rrserver"
+	"rr-http-proxy/reverse/processor"
+	"rr-lib/rrserver"
 )
 
 type ReverseProxyServer struct {

@@ -2,7 +2,7 @@ package rrserver
 
 import (
 	"log"
-	. "rrbackend"
+	. "rr-lib/rrbackend"
 	"time"
 )
 

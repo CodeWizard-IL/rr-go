@@ -1,10 +1,10 @@
 package server
 
 import (
-	"forward/handler"
 	"log"
 	"net/http"
-	"rrclient"
+	"rr-http-proxy/forward/handler"
+	"rr-lib/rrclient"
 	"time"
 )
 

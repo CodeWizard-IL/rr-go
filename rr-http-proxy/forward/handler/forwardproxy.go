@@ -2,11 +2,11 @@ package handler
 
 import (
 	"bytes"
-	"common/data"
 	"encoding/json"
 	"net/http"
-	"rrbuilder"
-	"rrclient"
+	"rr-http-proxy/common/data"
+	"rr-lib/rrbuilder"
+	"rr-lib/rrclient"
 )
 
 type ProxyHandler struct {

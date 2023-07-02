@@ -2,12 +2,12 @@ package processor
 
 import (
 	"bytes"
-	"common/data"
 	"encoding/json"
 	"io"
 	"net/http"
-	"rrbackend"
-	"rrbuilder"
+	"rr-http-proxy/common/data"
+	"rr-lib/rrbackend"
+	"rr-lib/rrbuilder"
 	"time"
 )
 

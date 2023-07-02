@@ -1,9 +1,9 @@
-package rrbackendamqp09
+package amqp09
 
 import (
 	"errors"
 	"github.com/streadway/amqp"
-	. "rrbackend"
+	. "rr-lib/rrbackend"
 )
 
 type StreadwayEnvelopeSerdes struct {

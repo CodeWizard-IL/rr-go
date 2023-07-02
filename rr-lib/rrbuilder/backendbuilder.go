@@ -2,10 +2,10 @@ package rrbuilder
 
 import (
 	"github.com/mitchellh/mapstructure"
-	"rrbackend"
-	"rrbackend/local"
-	"rrbackendamqp09"
-	"rrbackendazsmb"
+	"rr-lib/rrbackend"
+	"rr-lib/rrbackend/amqp09"
+	"rr-lib/rrbackend/azsb"
+	"rr-lib/rrbackend/local"
 )
 
 type UnsupportedBackendTypeError struct {
@@ -24,16 +24,16 @@ type BackendConfig struct {
 func BackendFromConfig(config BackendConfig) (rrbackend.RequestResponseBackend, error) {
 	switch config.Type {
 	case "amqp09":
-		amqp09Backend := rrbackendamqp09.Amqp09Backend{}
+		amqp09Backend := amqp09.RRBackendAmqp09{}
 		err := mapstructure.Decode(config.Configuration, &amqp09Backend)
 		if err != nil {
 			return nil, err
 		}
 		return &amqp09Backend, nil
 	case "local":
-		return &local.RequestResponseBackend{}, nil
+		return &local.RRBackendLocal{}, nil
 	case "azsb":
-		rrBackendAzSMB := rrbackendazsb.AzSBBackend{}
+		rrBackendAzSMB := azsb.RRBackendAzSB{}
 		err := mapstructure.Decode(config.Configuration, &rrBackendAzSMB)
 		if err != nil {
 			return nil, err

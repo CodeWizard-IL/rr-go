@@ -1,13 +1,13 @@
 package main
 
 import (
-	fserver "forward/server"
 	"log"
-	"reverse/processor"
-	rserver "reverse/server"
-	"rrbuilder"
-	"rrclient"
-	"rrserver"
+	fserver "rr-http-proxy/forward/server"
+	"rr-http-proxy/reverse/processor"
+	rserver "rr-http-proxy/reverse/server"
+	"rr-lib/rrbuilder"
+	"rr-lib/rrclient"
+	"rr-lib/rrserver"
 	"time"
 )
 

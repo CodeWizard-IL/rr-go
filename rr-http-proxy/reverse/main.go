@@ -1,13 +1,13 @@
 package main
 
 import (
-	"common/util"
 	"fmt"
 	"os"
-	"reverse/processor"
-	"reverse/server"
-	"rrbuilder"
-	"rrserver"
+	"rr-http-proxy/common/util"
+	"rr-http-proxy/reverse/processor"
+	"rr-http-proxy/reverse/server"
+	"rr-lib/rrbuilder"
+	"rr-lib/rrserver"
 )
 
 type ReverseProxyConfig struct {

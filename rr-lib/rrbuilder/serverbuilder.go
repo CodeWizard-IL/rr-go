@@ -2,7 +2,7 @@ package rrbuilder
 
 import (
 	"github.com/mitchellh/mapstructure"
-	"rrserver"
+	"rr-lib/rrserver"
 )
 
 type ServerConfig struct {

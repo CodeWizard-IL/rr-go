@@ -2,14 +2,14 @@ package local
 
 import (
 	"log"
-	"rrbackend"
+	"rr-lib/rrbackend"
 )
 
-type RequestResponseBackend struct {
+type RRBackendLocal struct {
 	channels map[string]chan rrbackend.TransportEnvelope
 }
 
-func (t *RequestResponseBackend) Connect() error {
+func (t *RRBackendLocal) Connect() error {
 
 	if t.channels != nil {
 		log.Default().Println("Local backend is already connected")
@@ -23,7 +23,7 @@ func (t *RequestResponseBackend) Connect() error {
 	return nil
 }
 
-func (t *RequestResponseBackend) getOrCreateChannelByID(ID string) chan rrbackend.TransportEnvelope {
+func (t *RRBackendLocal) getOrCreateChannelByID(ID string) chan rrbackend.TransportEnvelope {
 	channel := t.channels[ID]
 
 	if channel == nil {
@@ -35,27 +35,27 @@ func (t *RequestResponseBackend) getOrCreateChannelByID(ID string) chan rrbacken
 	return channel
 }
 
-func (t *RequestResponseBackend) GetRequestReadChannelByID(ID string) (<-chan rrbackend.TransportEnvelope, string) {
+func (t *RRBackendLocal) GetRequestReadChannelByID(ID string) (<-chan rrbackend.TransportEnvelope, string) {
 	return t.getOrCreateChannelByID(ID), ID
 }
 
-func (t *RequestResponseBackend) GetResponseReadChannelByID(ID string) (<-chan rrbackend.TransportEnvelope, string) {
+func (t *RRBackendLocal) GetResponseReadChannelByID(ID string) (<-chan rrbackend.TransportEnvelope, string) {
 	return t.getOrCreateChannelByID(ID), ID
 }
-func (t *RequestResponseBackend) GetRequestWriteChannelByID(ID string) (chan<- rrbackend.TransportEnvelope, string) {
-	return t.getOrCreateChannelByID(ID), ID
-}
-
-func (t *RequestResponseBackend) GetResponseWriteChannelByID(ID string) (chan<- rrbackend.TransportEnvelope, string) {
+func (t *RRBackendLocal) GetRequestWriteChannelByID(ID string) (chan<- rrbackend.TransportEnvelope, string) {
 	return t.getOrCreateChannelByID(ID), ID
 }
 
-func (t *RequestResponseBackend) ReleaseChannelByID(ID string) error {
+func (t *RRBackendLocal) GetResponseWriteChannelByID(ID string) (chan<- rrbackend.TransportEnvelope, string) {
+	return t.getOrCreateChannelByID(ID), ID
+}
+
+func (t *RRBackendLocal) ReleaseChannelByID(ID string) error {
 	log.Default().Printf("Releasing channel %s", ID)
 	delete(t.channels, ID)
 	return nil
 }
 
-func (t *RequestResponseBackend) GetEnvelopeSerdes() rrbackend.EnvelopeSerdes {
+func (t *RRBackendLocal) GetEnvelopeSerdes() rrbackend.EnvelopeSerdes {
 	return &TransportEnvelopeSerdes{}
 }
