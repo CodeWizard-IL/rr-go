@@ -2,6 +2,7 @@ client:
   backend:
     type: amqp09
     configuration:
+#      ConnectionString: amqp://guest:guest@host.docker.internal:5672/
       ConnectionString: amqp://guest:guest@localhost:5672/
   type: simple
   configuration:
